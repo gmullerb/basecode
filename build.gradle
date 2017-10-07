@@ -1,0 +1,100 @@
+//  Copyright (c) 2017 Gonzalo Müller Bravo.
+//  Licensed under the MIT License (MIT), see LICENSE.txt
+
+plugins {
+  id 'checkstyle'
+  id 'codenarc'
+}
+
+final LOCAL_REPO = project.hasProperty('localRepo')
+final TARGET_REPOSITORY = { LOCAL_REPO ? mavenLocal() : jcenter() }
+logger.info "Gradle Repository: ${LOCAL_REPO ? 'local' : 'remote'} (change it to local with -PlocalRepo)"
+
+ext.runningEnvironment = project.hasProperty('env') ? project.env.toLowerCase() : GLOBAL$DEFAULT_ENVIRONMENT
+logger.quiet "Enviroment: $runningEnvironment (change it with -Penv=TARGET_ENVIRONMENT)"
+
+allprojects {
+  buildscript {
+    repositories TARGET_REPOSITORY
+  }
+  repositories TARGET_REPOSITORY
+}
+ext.localGradleModuleFolder = "$rootDir/local_gradle"
+
+apply from: 'local_gradle/logger.gradle'
+apply from: 'local_gradle/extra.gradle'
+apply from: 'local_gradle/files.gradle'
+
+final allFilesInTree = obtainAllFilesInTree()
+
+// TASKS
+////////
+
+final ASSESS_COMMON = "${CODE$ASSESS_TASK_NAME}Common"
+
+task "$ASSESS_COMMON" (type: Checkstyle) {
+  // Checkstyle task settings
+  configFile = file('config/global-checks.xml')
+  classpath = files('dummy') // Required by Checkstyle, Not required for Checker modules
+  source allFilesInTree
+  // gradle task settings
+  description = 'Run Common Checkstyle analysis for all files.'
+  group = CODE$GROUP_ASSESS
+}
+
+task "${CODE$ASSESS_TASK_NAME}" {
+  description = 'Run all assess (common, backend & frontend).'
+  group = CODE$GROUP_ASSESS
+  dependsOn = [ASSESS_COMMON, "back:${CODE$ASSESS_TASK_NAME}", "front:${CODE$ASSESS_TASK_NAME}"]
+}
+
+task "${GLOBAL$TEST_TASK_NAME}" {
+  description = 'Run all tests (backend & frontend).'
+  group = CODE$GROUP_VERIFICATION
+  dependsOn = ["back:${GLOBAL$TEST_TASK_NAME}", "front:${GLOBAL$TEST_TASK_NAME}"]
+}
+
+task "${GLOBAL$CHECK_TASK_NAME}" {
+  description = 'Run all checks (backend & frontend).'
+  group = CODE$GROUP_VERIFICATION
+  dependsOn = [CODE$ASSESS_TASK_NAME, "back:${GLOBAL$CHECK_TASK_NAME}", "front:${GLOBAL$CHECK_TASK_NAME}"]
+}
+
+task "${CODE$COVERAGE_TASK_NAME}" {
+  description = 'Checks coverage for both project (backend & frontend).'
+  group = CODE$GROUP_VERIFICATION
+  dependsOn = ["back:${CODE$COVERAGE_TASK_NAME}", "front:${CODE$COVERAGE_TASK_NAME}"]
+}
+
+task "${CODE$DOCUMENTATION_TASK_NAME}" {
+  description = 'Generates JavaDoc and JSDoc documentation for all source'
+  group = CODE$GROUP_DOCUMENTATION
+  dependsOn = ["back:${CODE$DOCUMENTATION_TASK_NAME}", "front:${CODE$DOCUMENTATION_TASK_NAME}"]
+}
+
+task assessGradle(type: CodeNarc) {
+  // CodeNarc task settings
+  configFile = file('config/gradle-rules.groovy')
+  source allFilesInTree.filter { it.name.matches('.*\\.gradle') }
+  reports.text.enabled = true
+  // gradle task settings
+  description = 'Run Codenarc analysis for all gradle files.'
+  group = 'Gradle assessment'
+  finalizedBy 'reportGradle'
+}
+
+// Plugin settings
+//////////////////
+
+checkstyle {
+  toolVersion = "${GLOBAL$CHECKSTYLE_VERSION}"
+}
+
+codenarc {
+  toolVersion = "${GLOBAL$CODENARC_VERSION}"
+}
+
+// Default task
+///////////////
+
+defaultTasks 'assessGradle', ':front:assessLocal', GLOBAL$CHECK_TASK_NAME

@@ -1,0 +1,343 @@
+//  Copyright (c) 2017 Gonzalo Müller Bravo.
+//  Licensed under the MIT License (MIT), see LICENSE.txt
+
+buildscript {
+  dependencies {
+    classpath 'org.gradle:gradle-tooling-api:+'
+  }
+}
+
+plugins {
+  id 'java'
+  id 'org.springframework.boot' version '1.5.7.RELEASE'
+  id 'checkstyle'
+  id 'pmd'
+  id 'jacoco'
+}
+final FRONT = ':front'
+
+description 'Backend code'
+group 'Code'
+evaluationDependsOn(FRONT)
+
+configurations {
+  monitorClasspath
+}
+
+dependencies {
+  compile 'org.springframework.boot:spring-boot-starter-web'
+  monitorClasspath 'org.springframework.boot:spring-boot-devtools'
+  testCompile 'org.springframework.boot:spring-boot-starter-test'
+  testCompile 'org.junit.jupiter:junit-jupiter-engine:+'
+}
+
+apply from: "$localGradleModuleFolder/code.gradle"
+apply from: 'local_gradle/coverage.gradle'
+apply from: 'local_gradle/hotrun.gradle'
+
+// CONSTANTS
+////////////
+
+final CHECKSTYLE_MAIN_TASK = 'checkstyleMain'
+final CHECKSTYLE_UNIT_TEST_TASK = 'checkstyleUnitTest'
+final CHECKSTYLE_INTEGRATION_TEST_TASK = 'checkstyleIntegrationTest'
+final PMD_MAIN_TASK = 'pmdMain'
+final PMD_UNIT_TEST_TASK = 'pmdUnitTest'
+final PMD_INTEGRATION_TEST_TASK = 'pmdIntegrationTest'
+final BOOT_RUN_DEPENDENCIES_JAR_TASK = 'bootRunDependenciesJar'
+
+final INTEGRATION_TEST_FILE_NAME = 'IntegrationTest'
+final INTEGRATION_TEST_FILE_PATTERN = "**/*$INTEGRATION_TEST_FILE_NAME.*"
+
+final TEST_COMMON_SOURCE = sourceSets.test.allJava.findAll {
+  it.name.matches('.*(?<!Test)\\..*')
+}
+final CHECK_UNIT_TEST_COMMON_CONFIGURATION = {
+  source = (TEST_COMMON_SOURCE + sourceSets.test.allJava.findAll {
+    it.name.matches(".*(?<!$INTEGRATION_TEST_FILE_NAME)\\..*")
+  }).unique()
+  classpath = sourceSets.test.output.classesDirs
+}
+final CHECK_INTEGRATION_TEST_COMMON_CONFIGURATION = {
+  source = TEST_COMMON_SOURCE + sourceSets.test.allJava.findAll {
+    it.name.matches(".*$INTEGRATION_TEST_FILE_NAME\\..*")
+  }
+  classpath = sourceSets.test.output.classesDirs
+}
+// TASKS
+////////
+
+// Assessment
+/////////////
+
+task "${CODE$ASSESS_MAIN_TASK_NAME}" {
+  dependsOn = [CHECKSTYLE_MAIN_TASK, PMD_MAIN_TASK]
+}
+"${CODE$ASSESS_MAIN_TASK_NAME}" assessMainCodeConfiguration
+
+task "${CODE$ASSESS_TEST_TASK_NAME}" {
+  dependsOn = [checkstyleTest, pmdTest]
+}
+"${CODE$ASSESS_TEST_TASK_NAME}" assessTestCodeConfiguration
+
+// Assess Unit Test code
+////////////////////////
+
+task "$CHECKSTYLE_UNIT_TEST_TASK"(type: Checkstyle) {
+  description = 'Run Checkstyle analysis for Unit test code.'
+  group = CODE$GROUP_ASSESS
+  shouldRunAfter CHECKSTYLE_MAIN_TASK
+}
+"$CHECKSTYLE_UNIT_TEST_TASK" CHECK_UNIT_TEST_COMMON_CONFIGURATION
+
+task "$PMD_UNIT_TEST_TASK"(type: Pmd) {
+  description = 'Run PMD analysis for Unit test code.'
+  group = CODE$GROUP_ASSESS
+  shouldRunAfter PMD_MAIN_TASK, CHECKSTYLE_UNIT_TEST_TASK
+}
+"$PMD_UNIT_TEST_TASK" CHECK_UNIT_TEST_COMMON_CONFIGURATION
+
+task "${CODE$ASSESS_UNIT_TEST_TASK_NAME}" {
+  dependsOn = [CHECKSTYLE_UNIT_TEST_TASK, PMD_UNIT_TEST_TASK]
+}
+"${CODE$ASSESS_UNIT_TEST_TASK_NAME}" assessUnitTestCodeConfiguration
+
+// Assess Integration Test code
+///////////////////////////////
+
+task "$CHECKSTYLE_INTEGRATION_TEST_TASK"(type: Checkstyle) {
+  description = 'Run Checkstyle analysis for Integration test code.'
+  group = CODE$GROUP_ASSESS
+  shouldRunAfter CHECKSTYLE_MAIN_TASK
+}
+"$CHECKSTYLE_INTEGRATION_TEST_TASK" CHECK_INTEGRATION_TEST_COMMON_CONFIGURATION
+
+task "$PMD_INTEGRATION_TEST_TASK"(type: Pmd) {
+  description = 'Run PMD analysis for Integration test code.'
+  group = CODE$GROUP_ASSESS
+  shouldRunAfter PMD_MAIN_TASK, CHECKSTYLE_INTEGRATION_TEST_TASK
+}
+"$PMD_INTEGRATION_TEST_TASK" CHECK_INTEGRATION_TEST_COMMON_CONFIGURATION
+
+task "${CODE$ASSESS_INTEGRATION_TEST_TASK_NAME}" {
+  dependsOn = [CHECKSTYLE_INTEGRATION_TEST_TASK, PMD_INTEGRATION_TEST_TASK]
+}
+"${CODE$ASSESS_INTEGRATION_TEST_TASK_NAME}" assessIntegrationTestCodeConfiguration
+
+// Test code
+////////////
+
+final TEST_COMMON_CONFIGURATION = {
+  testLogging {
+    events 'failed', 'skipped'
+  }
+}
+
+task "${CODE$UNIT_TEST_TASK_NAME}"(type: Test) {
+  // Test task settings
+  ext.testReportDir = "$testReportDir/${CODE$UNIT_TEST_TASK_NAME}"
+  ext.coverageReportDir = jacocoTestReport.reports.html.destination
+  // gradle task settings
+  include '**/*Test.*'
+  exclude INTEGRATION_TEST_FILE_PATTERN
+  finalizedBy jacocoTestReport, jacocoTestCoverageVerification
+}
+"${CODE$UNIT_TEST_TASK_NAME}" unitTestCodeConfiguration << TEST_COMMON_CONFIGURATION
+
+task "${CODE$INTEGRATION_TEST_TASK_NAME}"(type: Test) {
+  // Test task settings
+  ext.reportDir = "$testReportDir/${CODE$INTEGRATION_TEST_TASK_NAME}"
+  // gradle task settings
+  include INTEGRATION_TEST_FILE_PATTERN
+}
+"${CODE$INTEGRATION_TEST_TASK_NAME}" integrationTestCodeConfiguration << TEST_COMMON_CONFIGURATION
+
+// Build
+////////
+
+task bootRunDependenciesJar(type: Jar) {
+  // Jar task settings
+  final SPRING_BOOT_DEPENDENCIES = configurations.runtime.collect { project.uri(it) }.join(' ')
+  baseName = "$jar.baseName-dependencies"
+  version = jar.version
+  manifest {
+    attributes 'Class-Path': SPRING_BOOT_DEPENDENCIES
+  }
+  // gradle task settings
+  description 'Sets the classpath into a JAR for using on bootRun.'
+  group CODE$GROUP_BUILD
+  inputs.files configurations.runtime.files
+  inputs.property('springBootDependencies', SPRING_BOOT_DEPENDENCIES)
+  shouldRunAfter CODE$ASSESS_MAIN_TASK_NAME
+}
+
+final COMMON_JAR_CONFIGURATION = {
+  // Jar task settings
+  baseName = BACK$ARCHIVE_NAME
+  manifest {
+    attributes 'Main-Class': BACK$MAIN_CLASS
+  }
+  // gradle task settings
+  doLast  {
+    logger.info "JAR Manifest:$manifest.attributes"
+  }
+}
+
+final PROJECT_FRONT = project(FRONT)
+
+task fixedJar(type: Jar) {
+  // Jar task settings
+  classifier = 'fix'
+  from jar.source
+  manifest {
+    attributes 'Class-Path': "$PROJECT_FRONT.jar.archivePath $bootRunDependenciesJar.archivePath"
+  }
+  // gradle task settings
+  description 'Assembles a fixed JAR archive containing the main classes and fixed classpath for all dependencies.'
+  group CODE$GROUP_BUILD
+  dependsOn += [PROJECT_FRONT.jar, BOOT_RUN_DEPENDENCIES_JAR_TASK]
+}
+fixedJar COMMON_JAR_CONFIGURATION
+
+// Documentation
+////////////////
+
+final DOC_DESCRIPTION_UPDATE = { description += '(Alias for javadoc task)' }
+task "${CODE$DOCUMENTATION_TASK_NAME}" {
+  ext.docType = 'javaDoc'
+  ext.docDir = javadoc.destinationDir
+  dependsOn = ['javadoc']
+}
+"${CODE$DOCUMENTATION_TASK_NAME}" DOC_DESCRIPTION_UPDATE << docCodeConfiguration
+
+task monitorClasspath {
+  description = 'Enables classpath monitoring.'
+  group = BACK$GROUP_RUN
+  ext.monitor = false
+  doLast {
+    ext.monitor = true
+  }
+}
+
+task monitorRun {
+  description = 'Runs the project with support for monitoring classpath changes and reloading classes.'
+  group = BACK$GROUP_RUN
+  dependsOn = ['monitorClasspath', 'bootRun']
+}
+
+// Plugin tasks
+///////////////
+
+checkstyleMain {
+  group = CODE$GROUP_ASSESS
+}
+checkstyleTest {
+  group = CODE$GROUP_ASSESS
+}
+pmdMain {
+  group = CODE$GROUP_ASSESS
+  shouldRunAfter CHECKSTYLE_MAIN_TASK
+}
+pmdTest {
+  group = CODE$GROUP_ASSESS
+  shouldRunAfter 'checkstyleTest'
+}
+
+test {
+  exclude '**/*'
+}
+test testCodeConfiguration
+
+check checkCodeConfiguration
+
+assemble assembleCodeConfiguration
+assemble {
+  shouldRunAfter GLOBAL$CHECK_TASK_NAME
+}
+build buildCodeConfiguration
+
+final JACOCO_EXEC_FILE = files("$buildDir/jacoco/${CODE$UNIT_TEST_TASK_NAME}.exec")
+
+jacocoTestReport {
+  // jacocoTestReport task settings
+  executionData = JACOCO_EXEC_FILE
+  afterEvaluate {
+    classDirectories = files(classDirectories.files.collect {
+      fileTree(dir: it, exclude: 'fit/your/needs/Main.class')
+    })
+  }
+  reports {
+    xml.enabled true
+  }
+  // gradle task settings
+  dependsOn CODE$UNIT_TEST_TASK_NAME
+  doLast {
+    showRatios jacocoTestReport.reports.xml.destination
+  }
+}
+
+jacocoTestCoverageVerification {
+  // jacocoTestCoverageVerification task settings
+  executionData = JACOCO_EXEC_FILE
+  violationRules {
+    rule {
+      element = 'SOURCEFILE'
+      excludes = ['**/Main.java']
+      limit {
+        counter = 'INSTRUCTION'
+        value = 'COVEREDRATIO'
+        minimum = 0.95
+      }
+    }
+  }
+  // gradle task settings
+  dependsOn CODE$UNIT_TEST_TASK_NAME
+  shouldRunAfter jacocoTestReport
+}
+
+bootRun {
+  // bootRun task settings
+  classpath = sourceSets.main.output + files(bootRunDependenciesJar.archivePath) +
+      files(PROJECT_FRONT.webDir)
+  jvmArgs "-Dspring.profiles.active=$runningEnvironment"
+  // gradle task settings
+  group = BACK$GROUP_RUN
+  dependsOn += [PROJECT_FRONT.assemble, BOOT_RUN_DEPENDENCIES_JAR_TASK]
+  shouldRunAfter GLOBAL$CHECK_TASK_NAME
+  mustRunAfter monitorClasspath
+  doFirst {
+    if (monitorClasspath.monitor) {
+      logger.quiet 'Monitor Classpath enabled'
+      classpath += configurations.monitorClasspath
+    }
+    logger.debug "BootRun Classpath:$classpath.files"
+  }
+}
+
+jar {
+  // Jar task settings
+  version = BACK$VERSION
+  // gradle task settings
+  shouldRunAfter CODE$ASSESS_MAIN_TASK_NAME
+}
+jar COMMON_JAR_CONFIGURATION
+
+// Plugin settings
+//////////////////
+
+checkstyle {
+  configFile = file('config/coding-checks.xml')
+  configProperties.cfgDir = "$projectDir/config"
+}
+
+pmd {
+  toolVersion = BACK$PMD_VERSION
+  ruleSetFiles = files('config/coding-rules.xml')
+  consoleOutput = true
+}
+
+tasks.withType(Checkstyle) {
+  reports {
+    xml.enabled = false
+  }
+}

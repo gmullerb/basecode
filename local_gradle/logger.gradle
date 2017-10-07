@@ -1,0 +1,17 @@
+//  Copyright (c) 2017 Gonzalo Müller Bravo.
+//  Licensed under the MIT License (MIT), see LICENSE.txt
+
+project.gradle.useLogger(new BuildAdapter() {
+  final static LOCATION_AWARE_EXCEPTION_REG_EX = ~/LocationAwareException.*\sline:\s\d*/
+  void buildFinished(BuildResult result) {
+    if ("$result.failure".find(LOCATION_AWARE_EXCEPTION_REG_EX) == null
+      || result.failure.cause == null
+      || !(result.failure.cause instanceof TaskExecutionException)
+      || result.failure.cause.cause == null
+      || result.failure.cause.cause.message.empty == null
+      || logger.debugEnabled) {
+      result.rethrowFailure()
+    } else {
+      logger.error "$result.failure.cause.cause.message"
+    }
+}})

@@ -1,0 +1,19 @@
+{
+  "source": {
+      "include": [ "src/main" ]
+  },
+  "opts": {
+      "destination": "build/docs",
+      "verbose": true,
+      "recurse": true
+  },
+  "tags": {
+      "allowUnknownTags": false,
+      "dictionaries": ["jsdoc"]
+  },
+  "templates": {
+      "default": {
+          "outputSourceFiles": false
+      }
+  }
+}

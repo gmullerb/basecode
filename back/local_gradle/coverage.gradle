@@ -1,0 +1,19 @@
+//  Copyright (c) 2017 Gonzalo Müller Bravo.
+//  Licensed under the MIT License (MIT), see LICENSE.txt
+
+ext.showRatios = {
+  final report = file(it)
+  if (report.exists()) {
+    double total = 0
+    final numberFormatter = new java.text.DecimalFormat('0.00')
+    final xml = new XmlSlurper(false, false, true)
+    xml.setFeature 'http://apache.org/xml/features/nonvalidating/load-external-dtd', false
+    logger.quiet '\n\tCoverage ratios:\n'
+    xml.parse(report).counter.each {
+      final ratio = it.@covered.toDouble() / (it.@missed.toDouble() + it.@covered.toDouble())
+      total += ratio
+      logger.quiet "\t* ${it.@type.toString().toLowerCase().capitalize()} = ${numberFormatter.format(ratio)}"
+    }
+    logger.quiet "\n\tAverage = ${numberFormatter.format(total / 5)}\n"
+  }
+}

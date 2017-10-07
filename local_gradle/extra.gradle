@@ -1,0 +1,13 @@
+//  Copyright (c) 2017 Gonzalo Müller Bravo.
+//  Licensed under the MIT License (MIT), see LICENSE.txt
+
+task reportGradle {
+  group = 'Gradle assessment'
+  doLast {
+    file(assessGradle.reports.text.destination)
+      .readLines()
+      .findAll { it.matches('(^File:.*)|(^\\s*Violation:.*)') }
+      *.replaceFirst('Src=\\[.*', '')
+      .each { logger.quiet it }
+  }
+}

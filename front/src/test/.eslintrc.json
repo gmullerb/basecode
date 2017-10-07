@@ -1,0 +1,10 @@
+{
+  "env": {
+    "jasmine": true
+  },
+  "globals": {
+    "main": false,
+    "$j": false,
+    "loadFixtures": false
+  }
+}

@@ -1,0 +1,116 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+    "-//Puppy Crawl//DTD Check Configuration 1.3//EN"
+    "http://www.puppycrawl.com/dtds/configuration_1_3.dtd">
+<module name="Checker">
+  <property name="fileExtensions" value="java"/>
+  <module name="JavadocPackage"/>
+  <module name="TreeWalker">
+    <property name="severity" value="error"/>
+    <module name="LineLength">
+      <property name="max" value="144"/>
+      <property name="ignorePattern" value="^package\s|^import\s|public void should\w*()|file:///|http://|https://|ftp://|classpath:|jar:|zip:|find\w*By\w*\(|read\w*By\w*\(|query\w*By\w*\(|get\w*By\w*\(|count\w*By\w*\("/>
+    </module>
+    <module name="MethodLength">
+      <property name="max" value="48"/>
+    </module>
+    <module name="MethodCount">
+      <property name="maxTotal" value="30"/>
+    </module>
+    <module name="ParameterNumber">
+      <property name="max" value="8"/>
+      <property name="ignoreOverriddenMethods" value="true"/>
+    </module>
+    <!-- Objects -->
+    <module name="FinalClass"/>
+    <module name="InterfaceIsType"/>
+    <module name="MutableException"/>
+    <module name="OneTopLevelClass"/>
+    <module name="VisibilityModifier">
+      <property name="protectedAllowed" value="true"/>
+    </module>
+    <module name="ModifierOrder"/>
+    <module name="RedundantModifier"/>
+    <module name="FinalParameters"/>
+    <module name="FinalLocalVariable"/>
+    <!-- Naming -->
+    <module name="PackageName"/>
+    <module name="TypeName"/>
+    <module name="ClassTypeParameterName">
+      <property name="format" value="^[A-Z][0-9]?$"/>
+    </module>
+    <module name="InterfaceTypeParameterName">
+      <property name="format" value="^[A-Z][0-9]?$"/>
+    </module>
+    <module name="MethodTypeParameterName">
+      <property name="format" value="^[A-Z][0-9]?$"/>
+    </module>
+    <module name="StaticVariableName"/>
+    <module name="MemberName"/>
+    <module name="MethodName"/>
+    <module name="ParameterName"/>
+    <module name="LocalVariableName"/>
+    <module name="LocalFinalVariableName"/>
+    <module name="AbbreviationAsWordInName">
+      <property name="allowedAbbreviationLength" value="1"/>
+      <property name="ignoreStatic" value="false"/>
+      <property name="ignoreFinal" value="false"/>
+    </module>
+    <module name="UpperEll"/>
+    <module name="AvoidEscapedUnicodeCharacters"/>
+    <!-- Annotations -->
+    <module name="AnnotationLocation">
+      <property name="tokens" value="CLASS_DEF, INTERFACE_DEF, ENUM_DEF, METHOD_DEF, CTOR_DEF"/>
+    </module>
+    <module name="AnnotationLocation">
+      <property name="id" value="AnnotationLocationVariableAndParameter"/>
+      <property name="allowSamelineMultipleAnnotations" value="true"/>
+      <property name="allowSamelineSingleParameterlessAnnotation" value="false"/>
+      <property name="tokens" value="VARIABLE_DEF, PARAMETER_DEF"/>
+    </module>
+    <module name="AnnotationUseStyle"/>
+    <module name="MissingOverride"/>
+    <!-- Imports -->
+    <module name="AvoidStarImport"/>
+    <module name="AvoidStaticImport"/>
+    <module name="CustomImportOrder">
+      <property name="customImportOrderRules" value="SAME_PACKAGE(2)"/>
+    </module>
+    <module name="IllegalImport"/>
+    <module name="RedundantImport"/>
+    <module name="UnusedImports"/>
+    <!-- Spaces -->
+    <module name="Indentation">
+      <property name="basicOffset" value="2"/>
+      <property name="caseIndent" value="2"/>
+      <property name="throwsIndent" value="2"/>
+      <property name="arrayInitIndent" value="2"/>
+      <property name="lineWrappingIndentation" value="2"/>
+      <property name="forceStrictCondition" value="true"/>
+    </module>
+    <module name="EmptyForInitializerPad"/>
+    <module name="EmptyLineSeparator">
+      <property name="allowMultipleEmptyLinesInsideClassMembers" value="false"/>
+    </module>
+    <module name="GenericWhitespace"/>
+    <module name="MethodParamPad"/>
+    <module name="NoLineWrap"/>
+    <module name="SingleSpaceSeparator"/>
+    <module name="CommentsIndentation"/>
+    <!-- Blocks -->
+    <module name="AvoidNestedBlocks"/>
+    <module name="EmptyBlock"/>
+    <module name="NeedBraces">
+      <property name="tokens" value="LITERAL_DO, LITERAL_FOR, LITERAL_WHILE"/>
+    </module>
+    <!-- Documentation -->
+    <module name="JavadocStyle">
+      <property name="checkEmptyJavadoc" value="true"/>
+    </module>
+    <module name="NonEmptyAtclauseDescription"/>
+  </module>
+  <module name="SuppressionFilter">
+    <property name="file" value="${cfgDir}/checks-suppressions.xml" default = "checks-suppressions.xml"/>
+    <property name="optional" value="false"/>
+  </module>
+</module>

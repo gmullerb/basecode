@@ -1,0 +1,218 @@
+//  Copyright (c) 2017 Gonzalo Müller Bravo.
+//  Licensed under the MIT License (MIT), see LICENSE.txt
+
+plugins {
+  id 'com.moowork.node' version '1.2.0'
+}
+
+description = 'Frontend code.'
+group = 'Code'
+
+apply from: "$localGradleModuleFolder/code.gradle"
+
+// CONSTANTS
+////////////
+
+final SOURCE_DIR = "$projectDir/src"
+final MAIN_DIR = "$SOURCE_DIR/main"
+final TEST_DIR = "$projectDir/test"
+final REPORTS_DIR = "$buildDir/reports"
+final TESTS_REPORT_DIR = "$REPORTS_DIR/tests"
+final COVERAGE_REPORT_DIR = "$REPORTS_DIR/coverage"
+
+final INCREMENTAL_MAIN_CONFIGURATION = {
+  inputs.dir MAIN_DIR
+}
+
+final INCREMENTAL_LINT_CONFIGURATION = {
+  inputs.files obtainFiles('.', [FRONT$ESLINT_CFG_FILE])
+}
+
+final NO_OUTPUTS_CONFIGURATION = {
+  outputs.upToDateWhen { true }
+}
+
+final INCREMENTAL_COMMON_TEST_CONFIGURATION = {
+  inputs.file 'config/test/common-test.cfg.js'
+} << NO_OUTPUTS_CONFIGURATION
+
+final INCREMENTAL_UNIT_TEST_CONFIGURATION = {
+  inputs.dir "$TEST_DIR/unit"
+  inputs.file 'config/test/unit-test.cfg.js'
+} << INCREMENTAL_COMMON_TEST_CONFIGURATION
+
+final INCREMENTAL_INTEGRATION_TEST_CONFIGURATION = {
+  inputs.file 'config/test/integration/integration-test.cfg.js'
+  inputs.file 'config/test/integration/jasmine.cfg.js'
+  inputs.dir "$TEST_DIR/integration"
+} << INCREMENTAL_COMMON_TEST_CONFIGURATION
+
+final INCREMENTAL_TEST_LINT_CONFIGURATION = {
+  inputs.files obtainFiles(TEST_DIR, [FRONT$ESLINT_CFG_FILE])
+} << INCREMENTAL_LINT_CONFIGURATION
+
+final BUILD_TASK = 'build'
+final CHECK_TASK = 'check'
+
+ext {
+  webDir = "$buildDir/web"
+  npmTaskConfiguration = {
+    // NpmTask task settings
+    args = ['run'] + args + (logger.debugEnabled ? ['--loglevel', 'silly'] : ['--silent'])
+    // gradle task settings
+    dependsOn += [npmInstall]
+    inputs.file file('package.json')
+    doFirst  {
+      logger.debug "$it.name command: ${args.join ' '}"
+    }
+  }
+  mainNpmTaskConfiguration = npmTaskConfiguration << INCREMENTAL_MAIN_CONFIGURATION
+}
+
+// TASKS
+////////
+
+// Assessment
+/////////////
+
+task "${CODE$ASSESS_MAIN_TASK_NAME}"(type: NpmTask) {
+  // NpmTask task settings
+  args = ['eslintMain']
+  // gradle task settings
+  inputs.files obtainFiles(MAIN_DIR, [FRONT$ESLINT_CFG_FILE])
+}
+"${CODE$ASSESS_MAIN_TASK_NAME}" assessMainCodeConfiguration << mainNpmTaskConfiguration << INCREMENTAL_TEST_LINT_CONFIGURATION <<
+  NO_OUTPUTS_CONFIGURATION
+
+task "${CODE$ASSESS_UNIT_TEST_TASK_NAME}"(type: NpmTask) {
+  args = ['eslintUT']
+}
+"${CODE$ASSESS_UNIT_TEST_TASK_NAME}" npmTaskConfiguration << assessUnitTestCodeConfiguration << INCREMENTAL_TEST_LINT_CONFIGURATION <<
+  INCREMENTAL_UNIT_TEST_CONFIGURATION
+
+task "${CODE$ASSESS_INTEGRATION_TEST_TASK_NAME}"(type: NpmTask) {
+  args = ['eslintIT']
+}
+"${CODE$ASSESS_INTEGRATION_TEST_TASK_NAME}" npmTaskConfiguration << assessIntegrationTestCodeConfiguration <<
+  INCREMENTAL_TEST_LINT_CONFIGURATION << INCREMENTAL_INTEGRATION_TEST_CONFIGURATION
+
+task "${CODE$ASSESS_TEST_TASK_NAME}"(type: NpmTask) {
+  args = ['eslintTest']
+}
+"${CODE$ASSESS_TEST_TASK_NAME}" mainNpmTaskConfiguration << assessTestCodeConfiguration << INCREMENTAL_TEST_LINT_CONFIGURATION <<
+  INCREMENTAL_UNIT_TEST_CONFIGURATION << INCREMENTAL_INTEGRATION_TEST_CONFIGURATION << NO_OUTPUTS_CONFIGURATION
+
+task assessCss(type: NpmTask) {
+  // NpmTask task settings
+  args = ['stylelint']
+  // gradle task settings
+  description = 'Analyze and assess CSS files.'
+  group = CODE$GROUP_ASSESS
+  shouldRunAfter CODE$ASSESS_MAIN_TASK_NAME
+  inputs.file '.stylelintrc.json'
+  inputs.files obtainFiles(SOURCE_DIR, ['*.css'])
+}
+assessCss mainNpmTaskConfiguration << NO_OUTPUTS_CONFIGURATION
+
+task assessLocal(type: NpmTask) {
+  // NpmTask task settings
+  args = ['eslintLocal']
+  // gradle task settings
+  description = 'Analyze and assess Local code'
+  group = CODE$GROUP_ASSESS
+  inputs.file FRONT$ESLINT_CFG_FILE
+  inputs.files obtainFiles('local_js', [FRONT$CODE_FILES, FRONT$ESLINT_CFG_FILE])
+  inputs.files obtainFiles('local_modules', [FRONT$CODE_FILES, FRONT$ESLINT_CFG_FILE])
+}
+assessLocal npmTaskConfiguration << NO_OUTPUTS_CONFIGURATION
+
+"${CODE$ASSESS_TASK_NAME}" {
+  dependsOn += [assessCss, assessLocal]
+}
+
+// Tests
+////////
+
+task "${CODE$UNIT_TEST_TASK_NAME}"(type: NpmTask) {
+  // NpmTask task settings
+  ext.testReportDir = "$TESTS_REPORT_DIR/${CODE$UNIT_TEST_TASK_NAME}"
+  ext.coverageReportDir = COVERAGE_REPORT_DIR
+  args = ['unitTest'
+    , "--front_src_dir=$SOURCE_DIR"
+    , "--front_test_report_dir=$testReportDir"
+    , "--front_coverage_report_dir=$coverageReportDir"]
+  // gradle task settings
+  outputs.dir testReportDir
+  outputs.dir coverageReportDir
+}
+"${CODE$UNIT_TEST_TASK_NAME}" mainNpmTaskConfiguration << unitTestCodeConfiguration << INCREMENTAL_UNIT_TEST_CONFIGURATION
+
+task "${CODE$INTEGRATION_TEST_TASK_NAME}"(type: NpmTask) {
+  ext.reportDir = "$TESTS_REPORT_DIR/${CODE$INTEGRATION_TEST_TASK_NAME}"
+  args = ['integrationTest'
+    , "--front_src_dir=$SOURCE_DIR"
+    , "--front_test_report_dir=$reportDir"]
+}
+"${CODE$INTEGRATION_TEST_TASK_NAME}" mainNpmTaskConfiguration << integrationTestCodeConfiguration << INCREMENTAL_INTEGRATION_TEST_CONFIGURATION
+
+task "${GLOBAL$TEST_TASK_NAME}"
+"${GLOBAL$TEST_TASK_NAME}" testCodeConfiguration
+
+task "${GLOBAL$CHECK_TASK_NAME}"
+"${GLOBAL$CHECK_TASK_NAME}" checkCodeConfiguration
+
+// Build
+////////
+
+task assemble(type: NpmTask) {
+  // NpmTask task settings
+  args = ['jsbuild',
+          "--front_src=$MAIN_DIR",
+          "--front_dest=$webDir/META-INF/resources",
+          "--front_env=$runningEnvironment"]
+  // gradle task settings
+  inputs.file 'local_js/build.js'
+  outputs.dir webDir
+  shouldRunAfter CODE$ASSESS_MAIN_TASK_NAME
+}
+assemble mainNpmTaskConfiguration << assembleCodeConfiguration
+
+task jar(type: Jar) {
+  // jar task settings
+  baseName = FRONT$ARCHIVE_NAME
+  version = FRONT$VERSION
+  from webDir
+  destinationDir = file("$buildDir/libs")
+  // gradle task settings
+  description = 'Assembles a JAR archive containing the web static resources.'
+  group = CODE$GROUP_BUILD
+  dependsOn = ['assemble']
+  shouldRunAfter CHECK_TASK
+}
+
+task "$BUILD_TASK" {
+  dependsOn = [CHECK_TASK, 'jar']
+}
+"$BUILD_TASK" buildCodeConfiguration
+
+// Documentation
+////////////////
+
+task "${CODE$DOCUMENTATION_TASK_NAME}"(type: NpmTask) {
+  // NpmTask task settings
+  args = ['jsdoc']
+  // gradle task settings
+  ext.docType = 'jsDoc'
+  ext.docDir = "$buildDir/docs"
+  inputs.file 'config/jsdoc.cfg.json'
+  outputs.dir docDir
+}
+"${CODE$DOCUMENTATION_TASK_NAME}" mainNpmTaskConfiguration << docCodeConfiguration
+
+// Plugin settings
+//////////////////
+
+node {
+  version = FRONT$NODE_VERSION
+  download = true
+}

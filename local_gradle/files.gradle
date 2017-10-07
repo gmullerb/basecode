@@ -1,0 +1,43 @@
+//  Copyright (c) 2017 Gonzalo Müller Bravo.
+//  Licensed under the MIT License (MIT), see LICENSE.txt
+
+final obtainExcludesFromGitIgnore = { gitIgnoreFile ->
+  final fragmentFolder = (gitIgnoreFile.parent - project.projectDir)
+  gitIgnoreFile
+      .readLines()
+      .flatten()
+      *.trim()
+      .findAll { !it.matches('(^\\s*[#].*)|(.*[\\[\\]\\!].*)') } // Ignores patterns with ! [ ] and comments
+      .findAll { !it.isEmpty() }
+      .collect { it.matches('(^[^/].*)|(.*/$)') ? "**/$it" : it }
+      .collect { "$fragmentFolder/$it" - '/' }
+}
+
+ext.obtainAllFilesInTree = {
+  fileTree('.') {
+    exclude 'gradlew*'
+    exclude 'gradle/'
+    ([project] + subprojects)
+        .collect { file("$it.projectDir/.gitignore") }
+        .findAll { it.exists() }
+        .each { logger.debug "Scanning $it for ignored patterns" }
+        .collectMany { obtainExcludesFromGitIgnore(it) }
+        .each {
+          logger.debug "Excluding $it"
+          exclude it
+        }
+  }
+}
+
+ext.obtainFiles = { folder, fileNames, excludes = [] ->
+  fileTree(folder) {
+    fileNames.each {
+      include "**/$it"
+      logger.debug "Including $it in $folder"
+    }
+    excludes.each {
+      exclude "**/$it"
+      logger.debug "Excluding $it in $folder"
+    }
+  }.files
+}

@@ -1,0 +1,9 @@
+{
+  "name": "double-runner",
+  "version": "0.0.1",
+  "description": "Runs the indicated command in its own thread and then executed the indicated run",
+  "keywords": [],
+  "author": {"name":"Gonzalo Müller Bravo"},
+  "license": "MIT",
+  "private": true
+}

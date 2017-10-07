@@ -1,0 +1,250 @@
+//  Copyright (c) 2017 Gonzalo Müller Bravo.
+//  Licensed under the MIT License (MIT), see LICENSE.txt
+
+class ConcurrentTask extends DefaultTask {
+  private final WorkerExecutor workerExecutor
+  private final concurrentClass
+  public projectDir
+  public task
+  public showOutput = false
+  public showError = false
+  public outputFilePath = ''
+  public errorFilePath = ''
+  public extraParams
+
+  ConcurrentTask(WorkerExecutor workerExecutor, Class concurrentClass) {
+    this.workerExecutor = workerExecutor
+    this.concurrentClass = concurrentClass
+  }
+
+  @TaskAction
+  run() {
+    workerExecutor.submit(concurrentClass) { config ->
+      config.isolationMode = IsolationMode.PROCESS
+      if (extraParams != null) {
+        config.params projectDir, task, showOutput, showError, outputFilePath, errorFilePath, extraParams
+      } else {
+        config.params projectDir, task, showOutput, showError, outputFilePath, errorFilePath
+      }
+    }
+  }
+}
+
+class SharedOutputStream extends OutputStream {
+  private final Collection<OutputStream> streams
+
+  SharedOutputStream(final Collection<OutputStream> streams) {
+    if (streams == null) {
+      throw new NullPointerException()
+    }
+    if (streams.isEmpty()) {
+      throw new IllegalArgumentException()
+    }
+    if (streams.any { it == null }) {
+      throw new NullPointerException()
+    }
+    this.streams = Collections.unmodifiableCollection(streams)
+  }
+
+  SharedOutputStream(final OutputStream ...streams) {
+    if (streams == null) {
+      throw new NullPointerException()
+    }
+    if (streams.any { it != null }) {
+      throw new NullPointerException()
+    }
+    this.streams = Arrays.asList(streams)
+  }
+
+  void close() {
+    this.streams.each { it.close() }
+  }
+  void flush() {
+    this.streams.each { it.flush() }
+  }
+  void write(final byte[] b) {
+    this.streams.each { it.write(b) }
+  }
+  void write(final byte[] b, final int off, final int len) {
+    this.streams.each { it.write(b, off, len) }
+  }
+  void write(final int b) {
+    this.streams.each { it.write(b) }
+  }
+}
+
+abstract class ConcurrentTaskUnitOfWork implements Runnable {
+  private final projectDir
+  private final task
+  private final outputFilePath
+  private final errorFilePath
+  private final showOutput
+  private final showError
+  private outputStreams
+  private printStream
+  private errorStreams
+
+  protected ConcurrentTaskUnitOfWork(final projectDir, final task, final showOutput, final showError,
+    final outputFilePath, final errorFilePath) {
+    this.projectDir = projectDir
+    this.task = task
+    this.showOutput = showOutput
+    this.showError = showError
+    this.outputFilePath = outputFilePath == null || outputFilePath.isEmpty() ?  null : outputFilePath
+    this.errorFilePath = errorFilePath == null || errorFilePath.isEmpty() ?  null : errorFilePath
+  }
+
+  private defineStream(final show, final stream, final path) {
+    Collection<OutputStream> outputs = []
+    if (show) {
+      outputs.add(stream)
+    }
+    if (path != null) {
+      outputs.add(new FileOutputStream(path))
+    }
+    outputs.isEmpty() ? null : new SharedOutputStream(outputs)
+  }
+
+  protected final arrangeStreams() {
+    this.outputStreams = this.defineStream(this.showOutput, System.out, this.outputFilePath)
+    this.printStream = this.outputStreams != null ? new PrintStream(this.outputStreams) : null
+    this.errorStreams = this.defineStream(this.showError, System.err, this.errorFilePath)
+  }
+
+  protected final closeStreams() {
+    if (this.outputStreams != null) {
+      this.outputStreams.close()
+    }
+    if (this.printStream != null) {
+      this.printStream.close()
+    }
+    if (this.errorStreams != null) {
+      this.errorStreams.close()
+    }
+  }
+
+  protected final createNewConnetion() {
+    org.gradle.tooling.GradleConnector.newConnector()
+          .forProjectDirectory(new File(this.projectDir))
+          .connect()
+  }
+
+  protected final buildLauncher(final connection) {
+    final launcher = connection.newBuild().forTasks(task)
+    if (this.outputStreams != null) {
+      launcher.standardOutput = this.outputStreams
+    }
+    if (this.errorStreams != null) {
+      launcher.standardError = this.errorStreams
+    }
+    launcher
+  }
+
+  protected final output(String text) {
+    if (this.outputStreams != null) {
+      this.printStream.println(text)
+    }
+  }
+}
+
+class ScheduledEndlessTaskUnitOfWork extends ConcurrentTaskUnitOfWork {
+  private final scheduledTime
+  private final showRun
+
+  @javax.inject.Inject
+  ScheduledEndlessTaskUnitOfWork(final projectDir, final task, final showOutput, final showError,
+    final outputFilePath, final errorFilePath, final extraParams) {
+    super(projectDir, task, showOutput, showError, outputFilePath, errorFilePath)
+    this.scheduledTime = extraParams[0]
+    this.showRun = extraParams[1]
+  }
+
+  @Override
+  void run() {
+    this.arrangeStreams()
+    try {
+      int runNumber = 0
+      while (true) {
+        final connection = this.createNewConnetion()
+        try {
+          Thread.sleep(this.scheduledTime)
+          this.buildLauncher(connection).run()
+          if (this.showRun) {
+            this.output("Run:${++runNumber} ${new Date()}")
+          }
+        } finally {
+          connection.close()
+        }
+      }
+    } finally {
+      this.closeStreams()
+    }
+  }
+}
+
+class ScheduledEndlessTask extends ConcurrentTask {
+  public scheduledTime = 1000
+  public showRun = true
+
+  @javax.inject.Inject
+  ScheduledEndlessTask(WorkerExecutor workerExecutor) {
+    super(workerExecutor, ScheduledEndlessTaskUnitOfWork)
+    extraParams = [scheduledTime, showRun]
+  }
+}
+
+class SimultaneousTaskUnitOfWork extends ConcurrentTaskUnitOfWork {
+  @javax.inject.Inject
+  SimultaneousTaskUnitOfWork(final projectDir, final task, final showOutput, final showError, final outputFilePath, final errorFilePath) {
+    super(projectDir, task, showOutput, showError, outputFilePath, errorFilePath)
+  }
+
+  @Override
+  void run() {
+    final connection = this.createNewConnetion()
+    try {
+      this.arrangeStreams()
+      this.buildLauncher(connection).run()
+    } finally {
+      connection.close()
+      this.closeStreams()
+    }
+  }
+}
+
+class SimultaneousTask extends ConcurrentTask {
+  @javax.inject.Inject
+  SimultaneousTask(WorkerExecutor workerExecutor) {
+    super(workerExecutor, SimultaneousTaskUnitOfWork)
+  }
+}
+
+task concurrentClasses(type: ScheduledEndlessTask) {
+  // ScheduledEndlessTask task settings
+  projectDir = project.projectDir.absolutePath
+  task = 'classes'
+  extraParams = [10000, true]
+  outputFilePath = "$project.buildDir/concurrentClasses.out"
+  errorFilePath = "$project.buildDir/concurrentClasses.err"
+  showOutput = true
+  // gradle task settings
+  description = 'Runs a concurrent classes task.'
+  group = BACK$GROUP_RUN
+}
+
+task concurrentBootRun(type: SimultaneousTask) {
+  // SimultaneousTask task settings
+  projectDir = project.projectDir.absolutePath
+  task = 'monitorRun'
+  showOutput = true
+  showError = true
+  // gradle task settings
+  description = 'Runs a concurrent monitorRun task.'
+  group = BACK$GROUP_RUN
+}
+
+task hotRun {
+  description = 'Runs the project with support for monitoring and reloading classes and static resources.'
+  group = BACK$GROUP_RUN
+  dependsOn = ['concurrentBootRun', 'concurrentClasses']
+}
