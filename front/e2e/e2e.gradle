@@ -1,4 +1,4 @@
-//  Copyright (c) 2017 Gonzalo Müller Bravo.
+//  Copyright (c) 2018 Gonzalo Müller Bravo.
 //  Licensed under the MIT License (MIT), see LICENSE.txt
 
 apply plugin: 'com.moowork.node'
@@ -9,8 +9,8 @@ group = 'Utility'
 ////////////
 
 final INCREMENTAL_E2E_INFO = {
-  inputs.files obtainFiles('src', [FRONT$CODE_FILES])
-  inputs.files obtainFiles('local_js', [FRONT$CODE_FILES])
+  inputs.files obtainFilesFromProject(project, 'src', [FRONT$CODE_FILES])
+  inputs.files obtainFilesFromProject(project, 'local_js', [FRONT$CODE_FILES])
 }
 
 // TASKS
@@ -22,7 +22,7 @@ task "${CODE$ASSESS_TASK_NAME}"(type: NpmTask) {
   // gradle task settings
   description = 'Analyze and assess End to End test code.'
   group = CODE$GROUP_ASSESS
-  inputs.files obtainFiles('.', [FRONT$ESLINT_CFG_FILE])
+  inputs.files obtainFilesFromProject(project, '.', [FRONT$ESLINT_CFG_FILE])
   outputs.upToDateWhen { true }
 }
 "${CODE$ASSESS_TASK_NAME}" npmTaskConfiguration << INCREMENTAL_E2E_INFO

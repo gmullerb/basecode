@@ -1,4 +1,4 @@
-//  Copyright (c) 2017 Gonzalo Müller Bravo.
+//  Copyright (c) 2018 Gonzalo Müller Bravo.
 //  Licensed under the MIT License (MIT), see LICENSE.txt
 
 plugins {
@@ -97,4 +97,4 @@ codenarc {
 // Default task
 ///////////////
 
-defaultTasks 'assessGradle', ':front:assessLocal', GLOBAL$CHECK_TASK_NAME
+defaultTasks 'assessGradle', GLOBAL$CHECK_TASK_NAME

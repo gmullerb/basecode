@@ -8,16 +8,16 @@
     /test
   /config
   /local_js
-  /local_gradle
   /local_modules
-  /readme    
+  /readme
 ```
 
-- `src/main`: Source code.
-- `src/test`: Test code.
-- `config`: Configuration files.
-- `local_gradle`: Local gradle modules folder.
-- `readme`: Readme attachments folder.
+* `src/main`: Source code.
+* `src/test`: Test code.
+* `config`: Configuration files.
+* `local_js`: Local JS files required for Node Tasks.
+* `local_modules`: Local Node JS modules.
+* `readme`: Readme attachments folder.
 
 * Frontend is organized in modules inside `src/main/modules`* Frontend environment information is in `src/*/config/environment-*.js`
   * With the current configuration, only the selected environment information is inside the assembled Frontend JAR.
@@ -35,9 +35,17 @@
 
 `gradlew :front:tasks`: Lists the runnable tasks for frontend project.
 
-Frontend allows for underscore notation for npm tasks thanks to the plugin in use, e.g.:  
-`gradlew npm_version`: npm version  
-`gradlew :front:npm_update`: npm update  
+* :front:check
+  * :front:assess
+    * :front:assessMain
+    * :front:assessTest
+    * :front:assessCss
+    * :front:assessLocal
+  * :front:coverage
+
+Frontend allows for underscore notation for npm tasks thanks to the plugin in use, e.g.:
+`gradlew npm_version`: npm version
+`gradlew :front:npm_update`: npm update
 
 ## Configuration
 
@@ -82,10 +90,10 @@ To execute these tasks individually:
 * Unit tests are [Jasmine](https://jasmine.github.io) tests defined in `*.test.js` files.
   * Configuration is in [`unit-test.cfg.js`](config/test/unit-test.cfg.js).
   * Report from coverage can be look at `/build/reports/coverage/`.
-    * This can be change with `COVERAGE_REPORT_DIR` in [`front.gradle`](front.gradle).  
+    * This can be change with `COVERAGE_REPORT_DIR` in [`front.gradle`](front.gradle).
 * Integration tests are [Jasmine](https://jasmine.github.io) tests defined in `*.integration-test.js` files.
   * Configuration is in [`integration-test.cfg.js`](config/test/integration/integration-test.cfg.js).
-  * Loads [`environment.js`](src/main/config/environment.js), [`environment-test.js`](src/test/config/environment-test.js), `*.css` and `*.html`  
+  * Loads [`environment.js`](src/main/config/environment.js), [`environment-test.js`](src/test/config/environment-test.js), `*.css` and `*.html`
 * Both, unit tests and integration tests use [PhantomJS](http://phantomjs.org/).
 
 ## Documentation

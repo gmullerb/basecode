@@ -1,23 +1,6 @@
 {
-  "parserOptions": {
-    "ecmaVersion": 6,
-    "sourceType": "module"
-  },
-  "env": {
-    "node": true
-  },
+  "extends": "../config/.eslintrc-node.json",
   "rules": {
-    "no-var": "error",
-    "prefer-const": "error",
-    "prefer-template": "error",
-    "prefer-arrow-callback": "error",
-    "prefer-rest-params": "error",
-    "no-useless-constructor": "error",
-    "class-methods-use-this": "error",
-    "no-duplicate-imports": "error",
-    "symbol-description": "error",
-    "arrow-spacing": "error",
-    "rest-spread-spacing": "error",
     "no-console": "off"
   }
 }

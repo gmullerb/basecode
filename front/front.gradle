@@ -1,4 +1,4 @@
-//  Copyright (c) 2017 Gonzalo Müller Bravo.
+//  Copyright (c) 2018 Gonzalo Müller Bravo.
 //  Licensed under the MIT License (MIT), see LICENSE.txt
 
 plugins {
@@ -25,7 +25,7 @@ final INCREMENTAL_MAIN_CONFIGURATION = {
 }
 
 final INCREMENTAL_LINT_CONFIGURATION = {
-  inputs.files obtainFiles('.', [FRONT$ESLINT_CFG_FILE])
+  inputs.files obtainFilesFromProject(project, '.', [FRONT$ESLINT_CFG_FILE])
 }
 
 final NO_OUTPUTS_CONFIGURATION = {
@@ -48,7 +48,7 @@ final INCREMENTAL_INTEGRATION_TEST_CONFIGURATION = {
 } << INCREMENTAL_COMMON_TEST_CONFIGURATION
 
 final INCREMENTAL_TEST_LINT_CONFIGURATION = {
-  inputs.files obtainFiles(TEST_DIR, [FRONT$ESLINT_CFG_FILE])
+  inputs.files obtainFilesFromProject(project, TEST_DIR, [FRONT$ESLINT_CFG_FILE])
 } << INCREMENTAL_LINT_CONFIGURATION
 
 final BUILD_TASK = 'build'
@@ -79,7 +79,7 @@ task "${CODE$ASSESS_MAIN_TASK_NAME}"(type: NpmTask) {
   // NpmTask task settings
   args = ['eslintMain']
   // gradle task settings
-  inputs.files obtainFiles(MAIN_DIR, [FRONT$ESLINT_CFG_FILE])
+  inputs.files obtainFilesFromProject(project, MAIN_DIR, [FRONT$ESLINT_CFG_FILE])
 }
 "${CODE$ASSESS_MAIN_TASK_NAME}" assessMainCodeConfiguration << mainNpmTaskConfiguration << INCREMENTAL_TEST_LINT_CONFIGURATION <<
   NO_OUTPUTS_CONFIGURATION
@@ -110,7 +110,7 @@ task assessCss(type: NpmTask) {
   group = CODE$GROUP_ASSESS
   shouldRunAfter CODE$ASSESS_MAIN_TASK_NAME
   inputs.file '.stylelintrc.json'
-  inputs.files obtainFiles(SOURCE_DIR, ['*.css'])
+  inputs.files obtainFilesFromProject(project, SOURCE_DIR, ['*.css'])
 }
 assessCss mainNpmTaskConfiguration << NO_OUTPUTS_CONFIGURATION
 
@@ -121,8 +121,8 @@ task assessLocal(type: NpmTask) {
   description = 'Analyze and assess Local code'
   group = CODE$GROUP_ASSESS
   inputs.file FRONT$ESLINT_CFG_FILE
-  inputs.files obtainFiles('local_js', [FRONT$CODE_FILES, FRONT$ESLINT_CFG_FILE])
-  inputs.files obtainFiles('local_modules', [FRONT$CODE_FILES, FRONT$ESLINT_CFG_FILE])
+  inputs.files obtainFilesFromProject(project, 'local_js', [FRONT$CODE_FILES, FRONT$ESLINT_CFG_FILE])
+  inputs.files obtainFilesFromProject(project, 'local_modules', [FRONT$CODE_FILES, FRONT$ESLINT_CFG_FILE])
 }
 assessLocal npmTaskConfiguration << NO_OUTPUTS_CONFIGURATION
 

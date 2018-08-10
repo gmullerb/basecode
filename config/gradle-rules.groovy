@@ -1,16 +1,18 @@
+//  Copyright (c) 2018 Gonzalo Müller Bravo.
+//  Licensed under the MIT License (MIT), see LICENSE.txt
+
 ruleset {
   description 'Gradle code rules'
 
-  ruleset('rulesets/groovyism.xml')
+  ruleset('rulesets/basic.xml')
+
+  ruleset('rulesets/braces.xml')
 
   ruleset('rulesets/convention.xml') {
-    exclude 'TrailingComma'
     exclude 'NoDef'
+    exclude 'TrailingComma'
+    exclude 'VariableTypeRequired'
   }
-
-  ruleset('rulesets/unnecessary.xml')
-
-  ruleset('rulesets/unused.xml')
 
   ruleset('rulesets/dry.xml')
 
@@ -22,18 +24,21 @@ ruleset {
     SpaceAroundMapEntryColon {
       characterAfterColonRegex = /\s/
     }
+    exclude 'Indentation'
   }
 
-  ruleset('rulesets/basic.xml')
-
-  ruleset('rulesets/braces.xml')
-
-  ruleset('rulesets/naming.xml') {
-    exclude 'VariableName'
-    exclude 'FactoryMethodName'
-  }
+  ruleset('rulesets/groovyism.xml')
 
   ruleset('rulesets/imports.xml')
 
   ruleset('rulesets/logging.xml')
+
+  ruleset('rulesets/naming.xml') {
+    exclude 'FactoryMethodName'
+    exclude 'VariableName'
+  }
+
+  ruleset('rulesets/unnecessary.xml')
+
+  ruleset('rulesets/unused.xml')
 }

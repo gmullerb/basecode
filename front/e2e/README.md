@@ -5,16 +5,13 @@
 ```
   /src
     /test
-  /config
   /local_js
-  /local_gradle
-  /local_modules
-  /readme    
+  /readme
 ```
 
 - `src/test`: Test code.
 - `config`: Configuration files.
-- `local_gradle`: Local gradle modules folder.
+- `local_js`: Local JS files required for Node Tasks.
 - `readme`: Readme attachments folder.
 
 ### Conventions
@@ -34,16 +31,18 @@
 ### Code Style Checking
 
 Uses **[ESlint](https://eslint.org)**.
+
 * **[ESlint](https://eslint.org)** rules are spread all over the `e2e` folder through `.eslintrc.json` files.
 
 To highlights:
+
 * Line length limit is ignored for lines with some patterns:
   * With URLs.
 * Strings should use double quotes for strings [1].
 
 To execute this task
 `gradlew assess`: ESLint checks
-* This task will assess test code and configuration code.
+  This task will assess test code and configuration code.
 
 > [1] To be consistent with Backend code.
 
@@ -52,13 +51,13 @@ To execute this task
 * End to end tests are [Jasmine](https://jasmine.github.io) + [Selenium](http://www.seleniumhq.org) tests defined in `e2e-test.js` files.
   * Configuration is in [`e2e.js`](local_js/e2e.js).
     * Browsers to use. default: [Chrome](https://www.google.com/chrome/browser/desktop/) and [Firefox](https://www.mozilla.org/en-US/firefox/).
-    ```
+    ```javascript
       const BROWSERS = [Browser.CHROME, Browser.FIREFOX]
     ```
     * TIMEOUT_BROWSER: time out before test fails waiting for browser.
-  * Tests will have available a variable `e2e` with:  
+  * Tests will have available a variable `e2e` with:
     * `by`: [Selenium By](https://seleniumhq.github.io/selenium/docs/api/javascript/module/selenium-webdriver/index_exports_By.html) instance for locating an element on the page.
     * `browser`: [Selenium WebDriver](https://seleniumhq.github.io/selenium/docs/api/javascript/module/selenium-webdriver/index_exports_WebDriver.html) instance for test
     * `until`: Gets conditions for use with WebDriver wait.
   * Report can be look at `/build/report.html`.
-    * This can be change with `--e2e_report_dir` in [`e2e.gradle`](e2e.gradle).  
+    * This can be change with `--e2e_report_dir` in [`e2e.gradle`](e2e.gradle).

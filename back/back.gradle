@@ -1,4 +1,4 @@
-//  Copyright (c) 2017 Gonzalo Müller Bravo.
+//  Copyright (c) 2018 Gonzalo Müller Bravo.
 //  Licensed under the MIT License (MIT), see LICENSE.txt
 
 buildscript {
@@ -9,7 +9,7 @@ buildscript {
 
 plugins {
   id 'java'
-  id 'org.springframework.boot' version '1.5.7.RELEASE'
+  id 'org.springframework.boot' version '2.0.4.RELEASE'
   id 'checkstyle'
   id 'pmd'
   id 'jacoco'
@@ -25,9 +25,9 @@ configurations {
 }
 
 dependencies {
-  compile 'org.springframework.boot:spring-boot-starter-web'
-  monitorClasspath 'org.springframework.boot:spring-boot-devtools'
-  testCompile 'org.springframework.boot:spring-boot-starter-test'
+  compile 'org.springframework.boot:spring-boot-starter-web:+'
+  monitorClasspath 'org.springframework.boot:spring-boot-devtools:+'
+  testCompile 'org.springframework.boot:spring-boot-starter-test:+'
   testCompile 'org.junit.jupiter:junit-jupiter-engine:+'
 }
 
@@ -332,6 +332,7 @@ checkstyle {
 
 pmd {
   toolVersion = BACK$PMD_VERSION
+  ruleSets = [] // required with new PMD version
   ruleSetFiles = files('config/coding-rules.xml')
   consoleOutput = true
 }

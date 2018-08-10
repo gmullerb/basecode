@@ -13,7 +13,7 @@
         /resources
     /config
     /local_gradle
-    /readme    
+    /readme
 ```
 
 - `src/main`: Source code.
@@ -24,7 +24,7 @@
 
 * Backend is organized in package inside `src/main/java`.
 * Backend environment information is in `src/*/resource/config/application-*.yml`.
-  * With the current configuration, all environments information is inside the assembled Backend JAR.  
+  * With the current configuration, all environments information is inside the assembled Backend JAR.
 
 ### Conventions
 
@@ -61,7 +61,8 @@ Uses **Checkstyle** + **PMD**[1].
 * **PMD** rules are in [`coding-rules.xml`](config/coding-rules.xml).
 * The configuration is set on [`back.gradle`](back.gradle) file.
 
- To highlights:
+To highlights:
+
 * Line length limit is ignored for lines with some patterns:
   * Starting with `package`.
   * Starting with `import`.
@@ -91,9 +92,9 @@ To execute these tasks individually[3]:
 `gradlew pmdUnitTest`
 `gradlew pmdIntegrationTest`
 
-> [1] PMD is run after Checkstyle, since Checkstyle is "lighter".  
-> [2] Forcing this is sometime harmful since different team members can use different IDEs.  
-> [3] The common parts between checks of Unit Tests and Integration Tests must come first on the list, TEST_COMMON_SOURCE in `back/build.gradle` (if not Checkstyle will fail to report some things due to the `checks_suppresions.xml` file)
+> [1] PMD is run after Checkstyle, since Checkstyle is "lighter".
+> [2] Forcing this is sometime harmful since different team members can use different IDEs.
+> [3] The common parts between checks of Unit Tests and Integration Tests must come first on the list, TEST_COMMON_SOURCE in `back/build.gradle` (if not Checkstyle will fail to report some things due to the `checks_suppressions.xml` file)
 
 ## Test Driven Development
 

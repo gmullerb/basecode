@@ -1,4 +1,4 @@
-//  Copyright (c) 2017 Gonzalo Müller Bravo.
+//  Copyright (c) 2018 Gonzalo Müller Bravo.
 //  Licensed under the MIT License (MIT), see LICENSE.txt
 
 final obtainExcludesFromGitIgnore = { gitIgnoreFile ->
@@ -29,8 +29,8 @@ ext.obtainAllFilesInTree = {
   }
 }
 
-ext.obtainFiles = { folder, fileNames, excludes = [] ->
-  fileTree(folder) {
+ext.obtainFilesFromProject = { project, folder, fileNames, excludes = [] ->
+  project.fileTree(folder) {
     fileNames.each {
       include "**/$it"
       logger.debug "Including $it in $folder"

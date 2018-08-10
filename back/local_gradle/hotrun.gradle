@@ -1,24 +1,29 @@
-//  Copyright (c) 2017 Gonzalo Müller Bravo.
+//  Copyright (c) 2018 Gonzalo Müller Bravo.
 //  Licensed under the MIT License (MIT), see LICENSE.txt
+
+import javax.inject.Inject
+
+import org.gradle.tooling.BuildLauncher
+import org.gradle.tooling.GradleConnector
 
 class ConcurrentTask extends DefaultTask {
   private final WorkerExecutor workerExecutor
-  private final concurrentClass
-  public projectDir
-  public task
-  public showOutput = false
-  public showError = false
-  public outputFilePath = ''
-  public errorFilePath = ''
-  public extraParams
+  private final Class concurrentClass
+  public String projectDir
+  public String task
+  public boolean showOutput = false
+  public boolean showError = false
+  public String outputFilePath = ''
+  public String errorFilePath = ''
+  public Object[] extraParams
 
-  ConcurrentTask(WorkerExecutor workerExecutor, Class concurrentClass) {
+  ConcurrentTask(final WorkerExecutor workerExecutor, final Class concurrentClass) {
     this.workerExecutor = workerExecutor
     this.concurrentClass = concurrentClass
   }
 
   @TaskAction
-  run() {
+  void run() {
     workerExecutor.submit(concurrentClass) { config ->
       config.isolationMode = IsolationMode.PROCESS
       if (extraParams != null) {
@@ -37,55 +42,42 @@ class SharedOutputStream extends OutputStream {
     if (streams == null) {
       throw new NullPointerException()
     }
-    if (streams.isEmpty()) {
-      throw new IllegalArgumentException()
-    }
     if (streams.any { it == null }) {
       throw new NullPointerException()
     }
     this.streams = Collections.unmodifiableCollection(streams)
   }
 
-  SharedOutputStream(final OutputStream ...streams) {
-    if (streams == null) {
-      throw new NullPointerException()
-    }
-    if (streams.any { it != null }) {
-      throw new NullPointerException()
-    }
-    this.streams = Arrays.asList(streams)
-  }
-
   void close() {
-    this.streams.each { it.close() }
+    streams.each { it.close() }
   }
   void flush() {
-    this.streams.each { it.flush() }
+    streams.each { it.flush() }
   }
   void write(final byte[] b) {
-    this.streams.each { it.write(b) }
+    streams.each { it.write(b) }
   }
   void write(final byte[] b, final int off, final int len) {
-    this.streams.each { it.write(b, off, len) }
+    streams.each { it.write(b, off, len) }
   }
   void write(final int b) {
-    this.streams.each { it.write(b) }
+    streams.each { it.write(b) }
   }
 }
 
 abstract class ConcurrentTaskUnitOfWork implements Runnable {
-  private final projectDir
-  private final task
-  private final outputFilePath
-  private final errorFilePath
-  private final showOutput
-  private final showError
-  private outputStreams
-  private printStream
-  private errorStreams
+  private final String projectDir
+  private final String task
+  private final String outputFilePath
+  private final String errorFilePath
+  private final boolean showOutput
+  private final boolean showError
+  private OutputStream outputStreams
+  private OutputStream printStream
+  private OutputStream errorStreams
 
-  protected ConcurrentTaskUnitOfWork(final projectDir, final task, final showOutput, final showError,
-    final outputFilePath, final errorFilePath) {
+  protected ConcurrentTaskUnitOfWork(final String projectDir, final String task, final boolean showOutput, final boolean showError,
+    final String outputFilePath, final String errorFilePath) {
     this.projectDir = projectDir
     this.task = task
     this.showOutput = showOutput
@@ -94,8 +86,8 @@ abstract class ConcurrentTaskUnitOfWork implements Runnable {
     this.errorFilePath = errorFilePath == null || errorFilePath.isEmpty() ?  null : errorFilePath
   }
 
-  private defineStream(final show, final stream, final path) {
-    Collection<OutputStream> outputs = []
+  private OutputStream defineStream(final boolean show, final OutputStream stream, final String path) {
+    final Collection<OutputStream> outputs = []
     if (show) {
       outputs.add(stream)
     }
@@ -105,55 +97,49 @@ abstract class ConcurrentTaskUnitOfWork implements Runnable {
     outputs.isEmpty() ? null : new SharedOutputStream(outputs)
   }
 
-  protected final arrangeStreams() {
-    this.outputStreams = this.defineStream(this.showOutput, System.out, this.outputFilePath)
-    this.printStream = this.outputStreams != null ? new PrintStream(this.outputStreams) : null
-    this.errorStreams = this.defineStream(this.showError, System.err, this.errorFilePath)
+  protected final void arrangeStreams() {
+    outputStreams = defineStream(showOutput, System.out, outputFilePath)
+    printStream = outputStreams != null ? new PrintStream(outputStreams) : null
+    errorStreams = defineStream(showError, System.err, errorFilePath)
   }
 
-  protected final closeStreams() {
-    if (this.outputStreams != null) {
-      this.outputStreams.close()
-    }
-    if (this.printStream != null) {
-      this.printStream.close()
-    }
-    if (this.errorStreams != null) {
-      this.errorStreams.close()
-    }
+  protected final void closeStreams() {
+    outputStreams?.close()
+    printStream?.close()
+    errorStreams?.close()
   }
 
-  protected final createNewConnetion() {
-    org.gradle.tooling.GradleConnector.newConnector()
-          .forProjectDirectory(new File(this.projectDir))
+  protected final GradleConnector createNewConnetion() {
+    GradleConnector.newConnector()
+          .forProjectDirectory(new File(projectDir))
           .connect()
   }
 
-  protected final buildLauncher(final connection) {
+  protected final BuildLauncher buildLauncher(final GradleConnector connection) {
     final launcher = connection.newBuild().forTasks(task)
-    if (this.outputStreams != null) {
-      launcher.standardOutput = this.outputStreams
+    if (outputStreams != null) {
+      launcher.standardOutput = outputStreams
     }
-    if (this.errorStreams != null) {
-      launcher.standardError = this.errorStreams
+    if (errorStreams != null) {
+      launcher.standardError = errorStreams
     }
     launcher
   }
 
-  protected final output(String text) {
-    if (this.outputStreams != null) {
-      this.printStream.println(text)
+  protected final void output(final String text) {
+    if (outputStreams != null) {
+      printStream.println(text)
     }
   }
 }
 
 class ScheduledEndlessTaskUnitOfWork extends ConcurrentTaskUnitOfWork {
-  private final scheduledTime
-  private final showRun
+  private final int scheduledTime
+  private final boolean showRun
 
-  @javax.inject.Inject
-  ScheduledEndlessTaskUnitOfWork(final projectDir, final task, final showOutput, final showError,
-    final outputFilePath, final errorFilePath, final extraParams) {
+  @Inject
+  ScheduledEndlessTaskUnitOfWork(final String projectDir, final String task, final boolean showOutput, final boolean showError,
+    final String outputFilePath, final String errorFilePath, final Object[] extraParams) {
     super(projectDir, task, showOutput, showError, outputFilePath, errorFilePath)
     this.scheduledTime = extraParams[0]
     this.showRun = extraParams[1]
@@ -161,60 +147,61 @@ class ScheduledEndlessTaskUnitOfWork extends ConcurrentTaskUnitOfWork {
 
   @Override
   void run() {
-    this.arrangeStreams()
+    arrangeStreams()
     try {
       int runNumber = 0
       while (true) {
-        final connection = this.createNewConnetion()
+        final connection = createNewConnetion()
         try {
-          Thread.sleep(this.scheduledTime)
-          this.buildLauncher(connection).run()
-          if (this.showRun) {
-            this.output("Run:${++runNumber} ${new Date()}")
+          Thread.sleep(scheduledTime)
+          buildLauncher(connection).run()
+          if (showRun) {
+            output("Run:${++runNumber} ${Instant.now()}")
           }
         } finally {
           connection.close()
         }
       }
     } finally {
-      this.closeStreams()
+      closeStreams()
     }
   }
 }
 
 class ScheduledEndlessTask extends ConcurrentTask {
-  public scheduledTime = 1000
-  public showRun = true
+  public int scheduledTime = 1000
+  public boolean showRun = true
 
-  @javax.inject.Inject
-  ScheduledEndlessTask(WorkerExecutor workerExecutor) {
+  @Inject
+  ScheduledEndlessTask(final WorkerExecutor workerExecutor) {
     super(workerExecutor, ScheduledEndlessTaskUnitOfWork)
     extraParams = [scheduledTime, showRun]
   }
 }
 
 class SimultaneousTaskUnitOfWork extends ConcurrentTaskUnitOfWork {
-  @javax.inject.Inject
-  SimultaneousTaskUnitOfWork(final projectDir, final task, final showOutput, final showError, final outputFilePath, final errorFilePath) {
+  @Inject
+  SimultaneousTaskUnitOfWork(final String projectDir, final String task, final boolean showOutput, final boolean showError,
+    final String outputFilePath, final String errorFilePath) {
     super(projectDir, task, showOutput, showError, outputFilePath, errorFilePath)
   }
 
   @Override
   void run() {
-    final connection = this.createNewConnetion()
+    final connection = createNewConnetion()
     try {
-      this.arrangeStreams()
-      this.buildLauncher(connection).run()
+      arrangeStreams()
+      buildLauncher(connection).run()
     } finally {
       connection.close()
-      this.closeStreams()
+      closeStreams()
     }
   }
 }
 
 class SimultaneousTask extends ConcurrentTask {
-  @javax.inject.Inject
-  SimultaneousTask(WorkerExecutor workerExecutor) {
+  @Inject
+  SimultaneousTask(final WorkerExecutor workerExecutor) {
     super(workerExecutor, SimultaneousTaskUnitOfWork)
   }
 }
