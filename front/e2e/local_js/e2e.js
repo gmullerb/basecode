@@ -30,7 +30,7 @@ jasmine.getEnv().addReporter(new HtmlSpecReporter({
 }));
 
 const builder = new webdriver.Builder();
-GLOBAL.e2e = {
+global.e2e = {
   TIMEOUT_BROWSER: 10000,
   by: webdriver.By,
   until: webdriver.until
@@ -40,16 +40,16 @@ for(const browserName of BROWSERS) {
     describe(`E2E at ${name}`, () => {
 
       beforeAll((done) => {
-        GLOBAL.e2e.browser = builder.forBrowser(name).build();
-        GLOBAL.e2e.browser.then(done);
+        global.e2e.browser = builder.forBrowser(name).build();
+        global.e2e.browser.then(done);
       });
 
       afterAll((done) => {
-        GLOBAL.e2e.browser.close().then(done);
+        global.e2e.browser.close().then(done);
       });
 
       beforeEach((done) => {
-        GLOBAL.e2e.browser.get(URL).then(done, () => done.fail("Unable to reach the host"));
+        global.e2e.browser.get(URL).then(done, () => done.fail("Unable to reach the host"));
       }, LOAD_TIMEOUT);
 
       tests.forEach((test) => vm.runInThisContext(test));

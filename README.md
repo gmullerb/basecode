@@ -226,8 +226,8 @@ Project configurations are defined in[2]:
 Properties are defined in gradle.properties files. Properties are defined with prefixes in order to differentiate where is the origin and can be locate "quickly":
 
 * `GLOBAL$property` -> [Main `gradle.properties`](gradle.properties).
-  Especial case for [`code.gradle`](local_gradle/code.gradle):
-  * `CODE$property` -> [Main `gradle.properties`](gradle.properties).
+  * Extra case for [`code.gradle`](local_gradle/code.gradle): `CODE$property` located in the [Main `gradle.properties`](gradle.properties).
+  * When changing one of these constant special care have to be taken since it may affect tasks in the back, front and/or e2e project.
 * `BACK$property` -> [Back `gradle.properties`](back/gradle.properties).
 * `FRONT$property` -> [Front `gradle.properties`](front/gradle.properties).
 
@@ -280,12 +280,12 @@ All projects have code style checking and have a subset of rules defined that tr
 * Egyptian brackets.
 * Tab character checking with 2 spaces.
 * Method length limit (48 lines).
-* Method parameter number limit (8 parameters).
+* Method parameters number limit (4 parameters).
 * Requires semicolon at the end of the line.
 * Requires a new line break at the end of the file[1].
 * Some spacing rules are the same.
 
-In the root project is defined a task that do some common checks for all files of the multi-project, `assessCommon`:
+In the root project is defined a Checkstyle task that do some common checks for all files of the multi-project, `assessCommon`:
 
 * The only files that are not processed are `.gitignore` files (due to some internal excluding of the Checkstyle ant task).
 * and It will ignore almost all patterns set in the `.gitignore` files, but patterns with ̣`!` and `[` + `]` will be bypassed (then avoid using these if possible)
@@ -328,7 +328,7 @@ For changing configuration go to ['hotrun.gradle'](back/local_gradle/hotrun.grad
   * extraParams[1]: Show run number and time (true or false, default: true).
 
 > [1] Based in [Gradle Daemons](https://docs.gradle.org/current/userguide/custom_tasks.html#worker_api).
-> [2] If do it other way , it will possible need 2 consoles for doing this.
+> [2] If do it other way, it will possibly need 2 opened consoles for doing this.
 > [3] Every 10s Code is check this can be change.
 > [4] When setting one, you should set both.
 

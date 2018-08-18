@@ -4,15 +4,15 @@
 buildscript {
   dependencies {
     classpath 'org.gradle:gradle-tooling-api:+'
-  }
+ }
 }
 
 plugins {
-  id 'java'
-  id 'org.springframework.boot' version '2.0.4.RELEASE'
   id 'checkstyle'
-  id 'pmd'
+  id 'java'
   id 'jacoco'
+  id 'org.springframework.boot' version '2.0.4.RELEASE'
+  id 'pmd'
 }
 final FRONT = ':front'
 
@@ -44,6 +44,7 @@ final CHECKSTYLE_INTEGRATION_TEST_TASK = 'checkstyleIntegrationTest'
 final PMD_MAIN_TASK = 'pmdMain'
 final PMD_UNIT_TEST_TASK = 'pmdUnitTest'
 final PMD_INTEGRATION_TEST_TASK = 'pmdIntegrationTest'
+final BOOT_RUN_TASK = 'bootRun'
 final BOOT_RUN_DEPENDENCIES_JAR_TASK = 'bootRunDependenciesJar'
 
 final INTEGRATION_TEST_FILE_NAME = 'IntegrationTest'
@@ -212,7 +213,7 @@ task "${CODE$DOCUMENTATION_TASK_NAME}" {
 
 task monitorClasspath {
   description = 'Enables classpath monitoring.'
-  group = BACK$GROUP_RUN
+  group = GLOBAL$GROUP_RUN
   ext.monitor = false
   doLast {
     ext.monitor = true
@@ -221,8 +222,14 @@ task monitorClasspath {
 
 task monitorRun {
   description = 'Runs the project with support for monitoring classpath changes and reloading classes.'
-  group = BACK$GROUP_RUN
-  dependsOn = ['monitorClasspath', 'bootRun']
+  group = GLOBAL$GROUP_RUN
+  dependsOn = ['monitorClasspath', BOOT_RUN_TASK]
+}
+
+task "${GLOBAL$RUN_TASK_NAME}" {
+  description = bootRun.description
+  group = GLOBAL$GROUP_RUN
+  dependsOn = [BOOT_RUN_TASK]
 }
 
 // Plugin tasks
@@ -301,7 +308,7 @@ bootRun {
       files(PROJECT_FRONT.webDir)
   jvmArgs "-Dspring.profiles.active=$runningEnvironment"
   // gradle task settings
-  group = BACK$GROUP_RUN
+  group = GLOBAL$GROUP_RUN
   dependsOn += [PROJECT_FRONT.assemble, BOOT_RUN_DEPENDENCIES_JAR_TASK]
   shouldRunAfter GLOBAL$CHECK_TASK_NAME
   mustRunAfter monitorClasspath

@@ -83,6 +83,12 @@ task assessGradle(type: CodeNarc) {
   finalizedBy 'reportGradle'
 }
 
+task "${GLOBAL$RUN_TASK_NAME}" {
+  description = "Runs back:${GLOBAL$RUN_TASK_NAME} tasks"
+  group = GLOBAL$GROUP_RUN
+  dependsOn = ["back:${GLOBAL$RUN_TASK_NAME}"]
+}
+
 // Plugin settings
 //////////////////
 

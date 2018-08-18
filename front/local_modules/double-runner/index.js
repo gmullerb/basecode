@@ -61,11 +61,11 @@ const serverChecker = {
  * @param {*} runner configuration {command: string, args: string[], onError: Function}
  *  command: command to execute.
  *  args: arguments for command.
- *  onError: Function to be executed in case of error. 
+ *  onError: Function to be executed in case of error.
  * @param {Object} runCfg Configuration for run
- * @param {Object} run {run: Function, validate: Function} 
+ * @param {Object} run {run: Function, validate: Function}
  *  run: function that receives 2 parameters
- *   thread: command's assigned thread (should be kill when done inside the run) 
+ *   thread: command's assigned thread (should be kill when done inside the run)
  *   runCfg: configuration for this run
  *  validate: (Optional) function to validate configuration 'runCfg' before running the process
  * Default: serverChecker

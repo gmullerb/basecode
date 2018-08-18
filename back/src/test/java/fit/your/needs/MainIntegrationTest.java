@@ -10,6 +10,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(SpringExtension.class)
@@ -24,7 +25,8 @@ public class MainIntegrationTest {
 
   @Test
   public void someTest() {
-    assertEquals("test1", value1);
-    assertEquals("value2", environment.getProperty("mysettings.key2"));
+    assertAll("with values",
+      () -> assertEquals("test1", value1),
+      () -> assertEquals("value2", environment.getProperty("mysettings.key2")));
   }
 }

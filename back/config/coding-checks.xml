@@ -26,6 +26,18 @@
     <module name="NeedBraces">
       <property name="tokens" value="LITERAL_DO, LITERAL_FOR, LITERAL_WHILE"/>
     </module>
+    <module name="RegexpSinglelineJava">
+        <property name="id" value="CallOnlyOneMethodPerLineForChainedCall"/>
+        <property name="format" value='^[^)]*\)\s*\..*' />
+        <property name="ignoreComments" value="true"/>
+        <message key="regexp.exceeded" value="Must call only one method per line: method1(...) NEWLINE .method2(...) NEWLINE .method3(...)"/>
+    </module>
+    <module name="RegexpSinglelineJava">
+        <property name="id" value="UseMultilineTernaryOperator"/>
+        <property name="format" value='^[^\?]*?\?\s*+$|^[^:]*?:\s*+$|^[^"]*?[^\s"]+?\s*?\?(?!:).*$|^[^"]*?[^\s"]+?\s*?:.*$|^[^"]*?"[^"]*?"[^"]*?\?(?!:).*$|^[^"]*?"[^"]*?"[^"]*?:.*$' />
+        <property name="ignoreComments" value="true"/>
+        <message key="regexp.exceeded" value="Must use multiline operator: condition NEWLINE ? expression NEWLINE : expression"/>
+    </module>
     <!-- Documentation -->
     <module name="JavadocStyle">
       <property name="checkEmptyJavadoc" value="true"/>
@@ -49,6 +61,7 @@
       <property name="ignoreStatic" value="false"/>
       <property name="ignoreFinal" value="false"/>
     </module>
+    <module name="AbstractClassName"/>
     <module name="AvoidEscapedUnicodeCharacters"/>
     <module name="ClassTypeParameterName">
       <property name="format" value="^[A-Z][0-9]?$"/>
@@ -94,7 +107,7 @@
       <property name="max" value="48"/>
     </module>
     <module name="ParameterNumber">
-      <property name="max" value="8"/>
+      <property name="max" value="4"/>
       <property name="ignoreOverriddenMethods" value="true"/>
     </module>
     <!-- Spaces -->

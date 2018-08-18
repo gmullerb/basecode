@@ -33,3 +33,44 @@
 * Fixes that when obtaining files for incremental build it was not getting any on subprojects.
   * [`files.gradle`](local_gradle/files.gradle): obtainFiles renamed to obtainFilesFromProject.
 * Updates some README files.
+
+## August 2018 A
+
+* Upgrades eslint to version 5.3.0.
+* Upgrades jasmine to version 3.2.0.
+* Upgrades karma to version 3.0.0.
+* Upgrades karma-jasmine to version 1.1.2.
+* Upgrades jsdoc to version 3.5.5.
+* Upgrades chromedriver to version 2.41.0.
+* Upgrades geckodriver to version 1.12.1.
+* Adds the global property GLOBAL$RUN_TASK_NAME (initial value: run), [`gradle.properties`](gradle.properties):
+  * Moves from `BACK$GROUP_RUN` to `GLOBAL$GROUP_RUN`.
+  * Adds an alias for `back:bootRun` task: `back:run`.
+  * Adds an alias for `e2e:test` task: `e2e:run`.
+  * Adds a `:run` task.
+* Suppresses some PMD's rules, [`coding-rules.xml`](back/config/coding-rules.xml):
+  * DataflowAnomalyAnalysis: It gets freaky with lambdas and cannot be configured independently for UR, DU and DD.
+* Suppresses some PMD's rules for test files, [`coding-rules.xml`](back/config/coding-rules.xml):
+  * ExcessivePublicCount.
+  * TooManyMethods.
+  * AvoidDuplicateLiterals.
+  * BeanMembersShouldSerialize.
+* Adds some rules to Checkstyle, [`coding-checks.xml`](back/config/coding-checks.xml):
+  * AbstractClassName.
+* Adds some custom rules to Checkstyle in order to increase Readability, [`coding-checks.xml`](back/config/coding-checks.xml):
+  * [CallOnlyOneMethodPerLineForChainedCall](back/README.md###Code-Style-Checking).
+  * [UseMultilineTernaryOperator](back/README.md###Code-Style-Checking).
+* Suppresses some rules in some special conditions for PMD, [`coding-rules.xml`](back/config/coding-rules.xml):
+  * `UselessParentheses` allows to group AND and OR conditions with parentheses to increase Readability.
+* Adds some custom rules to PMD, [`coding-checks.xml`](back/config/coding-checks.xml):
+  * AvoidFieldInjection.
+* Adds some rules to eslint in order to increase Readability, [`.eslintrc.json`](front/.eslintrc.json):
+  * newline-per-chained-call.
+* Changes method parameters number limit to 4 (8 was to big, then hard to maintain).
+* Rearranges plugins's id alphabetically.
+* Migrates deprecated NodeJS's `GLOBAL` to `global`.
+* Fixes some issues for Concurrent tasks API [`hotrun.gradle`](back/local_gradle/hotrun.gradle):
+  * Adds a missing import: `java.time.Instant`.
+  * Fixes misspelled method's name: from `createNewConnetion` to `createNewConnection`.
+  * Fixes the returning type for createNewConnection: from `GradleConnector` to `ProjectConnection`.
+* Updates some README files.

@@ -61,7 +61,7 @@ Uses **Checkstyle** + **PMD**[1].
 * **PMD** rules are in [`coding-rules.xml`](config/coding-rules.xml).
 * The configuration is set on [`back.gradle`](back.gradle) file.
 
-To highlights:
+Highlight:
 
 * Line length limit is ignored for lines with some patterns:
   * Starting with `package`.
@@ -81,10 +81,51 @@ To highlights:
     * `query*By*`.
     * `get*By*`.
     * `count*By*`.
-* Import order is freed[2].
-  * But requires grouping "same" packages.
+* Import order is forced to have some structure[2] (rule: CustomImportOrder):
+  * First same package's imports, to increase Readability (Allows to always easily locate the classes of same package, usually classes created in the project, that current class depends on).
+  * Then java and javax.
+  * Then third party.
+* Ternary operator is forced to be in multiple lines in order to increase Readability (rule: UseMultilineTernaryOperator):
 
-To execute these tasks individually[3]:
+  ```java
+    condition
+      ? expression
+      : expression
+   ```
+
+* Checks that only one method is called per line in order to increase Readability (rule: CallOnlyOneMethodPerLineForChainedCall):
+
+  ```java
+    new SomeObject(..)
+      .method2(..)
+      .method3(..);
+   ```
+
+  or
+
+  ```java
+    method1(..)
+      .method2(..)
+      .method3(..);
+   ```
+
+  or
+
+  ```java
+    object.method1(..)
+      .method2(..)
+      .method3(..);
+   ```
+
+* Checks that no Field Injection is used in the code (rule: AvoidFieldInjection).
+* For test some rules/checks are disabled in order to allow some freedom:
+  * No restriction on the number of methods.
+  * Duplication of literals is allowed, to increase test Maintainability.
+  * Throwing an Exception is allowed.
+  * Field Injection is allowed.
+  * Javadoc, obviously, is not required or checked.
+
+Checkstyle and PMD, in their different modalities, can be executed independently[3]:
 `gradlew checkstyleMain`
 `gradlew checkstyleUnitTest`
 `gradlew checkstyleIntegrationTest`
@@ -93,8 +134,8 @@ To execute these tasks individually[3]:
 `gradlew pmdIntegrationTest`
 
 > [1] PMD is run after Checkstyle, since Checkstyle is "lighter".
-> [2] Forcing this is sometime harmful since different team members can use different IDEs.
-> [3] The common parts between checks of Unit Tests and Integration Tests must come first on the list, TEST_COMMON_SOURCE in `back/build.gradle` (if not Checkstyle will fail to report some things due to the `checks_suppressions.xml` file)
+> [2] Although forcing this is sometime harmful since different team members can use different IDEs, but IDEs should not rule the development.
+> [3] The common parts between checks of Unit Tests and Integration Tests are done first, TEST_COMMON_SOURCE in `back/build.gradle` (if not Checkstyle will fail to report some things due to the `checks_suppressions.xml` file)
 
 ## Test Driven Development
 
@@ -103,6 +144,10 @@ To execute these tasks individually[3]:
 * Environment for test can be set on the [`application-test.yml`](src/test/resources/config/application-test.yml)
 
 > Only use **Test** and **IntegrationTest** suffix for Test classes name, tests are processed based on this.
+
+## Hot run
+
+[`Hot run`](../README.md#Hot-run)
 
 ## Documentation
 

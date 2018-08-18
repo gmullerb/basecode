@@ -12,7 +12,9 @@ public class SomeBean {
    * @param data Some data.
    * @return Some value.
    */
-  public String fitYourNeeds(final String data){
-    return data;
+  public String fitYourNeeds(final String data) {
+    return data == null || data.isEmpty()
+      ? "null"
+      : data;
   }
 }

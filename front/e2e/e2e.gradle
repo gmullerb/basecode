@@ -12,6 +12,7 @@ final INCREMENTAL_E2E_INFO = {
   inputs.files obtainFilesFromProject(project, 'src', [FRONT$CODE_FILES])
   inputs.files obtainFilesFromProject(project, 'local_js', [FRONT$CODE_FILES])
 }
+final MAIN_TASK_DESCRIPTION = 'Run the end to end tests.'
 
 // TASKS
 ////////
@@ -36,7 +37,7 @@ task "${GLOBAL$TEST_TASK_NAME}"(type: NpmTask) {
           , "--e2e_jar=${project(':back').fixedJar.archivePath}"
           , "--e2e_report_dir=$buildDir"]
   // gradle task settings
-  description = 'Run the end to end tests.'
+  description = MAIN_TASK_DESCRIPTION
   group = CODE$GROUP_TEST
   dependsOn = [':front:npmInstall', ':back:fixedJar']
   shouldRunAfter = [CODE$ASSESS_TASK_NAME]
@@ -51,6 +52,12 @@ task "${GLOBAL$CHECK_TASK_NAME}"
 "${GLOBAL$CHECK_TASK_NAME}" checkCodeConfiguration
 "${GLOBAL$CHECK_TASK_NAME}" {
   dependsOn = [CODE$ASSESS_TASK_NAME, GLOBAL$TEST_TASK_NAME]
+}
+
+task "${GLOBAL$RUN_TASK_NAME}" {
+  description = MAIN_TASK_DESCRIPTION
+  group = GLOBAL$GROUP_RUN
+  dependsOn = [GLOBAL$TEST_TASK_NAME]
 }
 
 // Plugin settings

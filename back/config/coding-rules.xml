@@ -24,11 +24,15 @@
     <exclude name="CallSuperInConstructor"/>
     <exclude name="ConfusingTernary"/>
     <exclude name="OnlyOneReturn"/>
-
   </rule>
   <rule ref="category/java/codestyle.xml/ShortClassName">
     <properties>
       <property name="minimum" value="3"/>
+    </properties>
+  </rule>
+  <rule ref="category/java/codestyle.xml/UselessParentheses">
+    <properties>
+      <property name="violationSuppressXPath" value=".[./ConditionalAndExpression or ./ConditionalOrExpression]"/>
     </properties>
   </rule>
   <rule ref="category/java/codestyle.xml/TooManyStaticImports">
@@ -43,7 +47,17 @@
     <exclude name="LawOfDemeter"/>
     <exclude name="LoosePackageCoupling"/>
   </rule>
+  <rule ref="category/java/design.xml/ExcessivePublicCount">
+    <properties>
+      <property name="violationSuppressXPath" value="/TypeDeclaration/ClassOrInterfaceDeclaration[ends-with(@Image,'Test')]"/>
+    </properties>
+  </rule>
   <rule ref="category/java/design.xml/SignatureDeclareThrowsException">
+    <properties>
+      <property name="violationSuppressXPath" value="/TypeDeclaration/ClassOrInterfaceDeclaration[ends-with(@Image,'Test')]"/>
+    </properties>
+  </rule>
+  <rule ref="category/java/design.xml/TooManyMethods">
     <properties>
       <property name="violationSuppressXPath" value="/TypeDeclaration/ClassOrInterfaceDeclaration[ends-with(@Image,'Test')]"/>
     </properties>
@@ -59,16 +73,21 @@
     <exclude name="AvoidLiteralsInIfCondition"/>
     <exclude name="AvoidMultipleUnaryOperators"/>
     <exclude name="BadComparison"/>
-    <exclude name="BeanMembersShouldSerialize"/>
+    <exclude name="DataflowAnomalyAnalysis"/>
     <exclude name="JumbledIncrementer"/>
     <exclude name="MissingBreakInSwitch"/>
     <exclude name="NonCaseLabelInSwitchStatement"/>
     <exclude name="NullAssignment"/>
     <exclude name="UseLocaleWithCaseConversions"/>
   </rule>
-  <rule ref="category/java/errorprone.xml/EmptyCatchBlock">
+  <rule ref="category/java/errorprone.xml/AvoidDuplicateLiterals">
     <properties>
-      <property name="allowCommentedBlocks" value="true"/>
+      <property name="violationSuppressXPath" value="/TypeDeclaration/ClassOrInterfaceDeclaration[ends-with(@Image,'Test')]"/>
+    </properties>
+  </rule>
+  <rule ref="category/java/errorprone.xml/BeanMembersShouldSerialize">
+    <properties>
+      <property name="violationSuppressXPath" value="/TypeDeclaration/ClassOrInterfaceDeclaration[ends-with(@Image,'Test')]"/>
     </properties>
   </rule>
   <rule ref="category/java/multithreading.xml">
@@ -79,4 +98,18 @@
     <exclude name="AvoidInstantiatingObjectsInLoops"/>
   </rule>
   <rule ref="category/java/security.xml"/>
+  <!-- Custom rules -->
+  <rule
+    name="AvoidFieldInjection"
+    language="java"
+    message="Do not use Field injection"
+    class="net.sourceforge.pmd.lang.rule.XPathRule">
+    <priority>3</priority>
+    <properties>
+      <property name="violationSuppressXPath" value="/TypeDeclaration/ClassOrInterfaceDeclaration[ends-with(@Image,'Test')]"/>
+      <property name="xpath">
+        <value><![CDATA[//FieldDeclaration/preceding-sibling::Annotation/MarkerAnnotation/Name[@Image='Inject' or @Image='Autowired']]]></value>
+      </property>
+    </properties>
+  </rule>
 </ruleset>

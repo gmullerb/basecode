@@ -1,10 +1,13 @@
 //  Copyright (c) 2018 Gonzalo Müller Bravo.
 //  Licensed under the MIT License (MIT), see LICENSE.txt
 
+import java.time.Instant
+
 import javax.inject.Inject
 
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.ProjectConnection
 
 class ConcurrentTask extends DefaultTask {
   private final WorkerExecutor workerExecutor
@@ -109,13 +112,13 @@ abstract class ConcurrentTaskUnitOfWork implements Runnable {
     errorStreams?.close()
   }
 
-  protected final GradleConnector createNewConnetion() {
+  protected final ProjectConnection createNewConnection() {
     GradleConnector.newConnector()
           .forProjectDirectory(new File(projectDir))
           .connect()
   }
 
-  protected final BuildLauncher buildLauncher(final GradleConnector connection) {
+  protected final BuildLauncher buildLauncher(final ProjectConnection connection) {
     final launcher = connection.newBuild().forTasks(task)
     if (outputStreams != null) {
       launcher.standardOutput = outputStreams
@@ -151,7 +154,7 @@ class ScheduledEndlessTaskUnitOfWork extends ConcurrentTaskUnitOfWork {
     try {
       int runNumber = 0
       while (true) {
-        final connection = createNewConnetion()
+        final connection = createNewConnection()
         try {
           Thread.sleep(scheduledTime)
           buildLauncher(connection).run()
@@ -188,7 +191,7 @@ class SimultaneousTaskUnitOfWork extends ConcurrentTaskUnitOfWork {
 
   @Override
   void run() {
-    final connection = createNewConnetion()
+    final connection = createNewConnection()
     try {
       arrangeStreams()
       buildLauncher(connection).run()
@@ -216,7 +219,7 @@ task concurrentClasses(type: ScheduledEndlessTask) {
   showOutput = true
   // gradle task settings
   description = 'Runs a concurrent classes task.'
-  group = BACK$GROUP_RUN
+  group = GLOBAL$GROUP_RUN
 }
 
 task concurrentBootRun(type: SimultaneousTask) {
@@ -227,11 +230,11 @@ task concurrentBootRun(type: SimultaneousTask) {
   showError = true
   // gradle task settings
   description = 'Runs a concurrent monitorRun task.'
-  group = BACK$GROUP_RUN
+  group = GLOBAL$GROUP_RUN
 }
 
 task hotRun {
   description = 'Runs the project with support for monitoring and reloading classes and static resources.'
-  group = BACK$GROUP_RUN
+  group = GLOBAL$GROUP_RUN
   dependsOn = ['concurrentBootRun', 'concurrentClasses']
 }
