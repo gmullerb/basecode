@@ -1,6 +1,8 @@
 //  Copyright (c) 2017 Gonzalo Müller Bravo.
 //  Licensed under the MIT License (MIT), see LICENSE.txt
 
+final ASSESS_MAIN_TASK = 'assessMain'
+
 ext {
   assessMainCodeConfiguration = {
     description = 'Analyze and assess Main code.'
@@ -10,25 +12,25 @@ ext {
   assessUnitTestCodeConfiguration = {
     description = 'Analyze and assess Unit test code.'
     group = CODE$GROUP_ASSESS
-    shouldRunAfter CODE$ASSESS_MAIN_TASK_NAME
+    shouldRunAfter assessMain
   }
 
   assessIntegrationTestCodeConfiguration = {
     description = 'Analyze and assess Integration test code.'
     group = CODE$GROUP_ASSESS
-    shouldRunAfter CODE$ASSESS_MAIN_TASK_NAME, CODE$ASSESS_UNIT_TEST_TASK_NAME
+    shouldRunAfter assessMain, assessUnitTest
   }
 
   assessTestCodeConfiguration = {
     description = 'Analyze and assess Test code (Unit & Integration).'
     group = CODE$GROUP_ASSESS
-    shouldRunAfter CODE$ASSESS_MAIN_TASK_NAME
+    shouldRunAfter assessMain
   }
 
   unitTestCodeConfiguration = {
     description = 'Runs the Unit Tests.'
     group = CODE$GROUP_TEST
-    shouldRunAfter CODE$ASSESS_UNIT_TEST_TASK_NAME
+    shouldRunAfter assessUnitTest
     doLast {
       logger.quiet "See unit test report at $testReportDir"
       logger.quiet "See coverage report at $coverageReportDir"
@@ -38,7 +40,7 @@ ext {
   integrationTestCodeConfiguration = {
     description = 'Runs the Integration Tests.'
     group = CODE$GROUP_TEST
-    shouldRunAfter CODE$ASSESS_INTEGRATION_TEST_TASK_NAME, CODE$UNIT_TEST_TASK_NAME
+    shouldRunAfter assessIntegrationTest, unitTest
     doLast {
       logger.quiet "See integration test report at $reportDir"
     }
@@ -47,14 +49,14 @@ ext {
   testCodeConfiguration = {
     description = 'Runs the Unit & Integration tests.'
     group = CODE$GROUP_TEST
-    dependsOn += [CODE$UNIT_TEST_TASK_NAME, CODE$INTEGRATION_TEST_TASK_NAME]
-    shouldRunAfter CODE$ASSESS_TASK_NAME
+    dependsOn += [unitTest, integrationTest]
+    shouldRunAfter assess
   }
 
   checkCodeConfiguration = {
     description = 'Runs all checks (assess & test).'
     group = CODE$GROUP_VERIFICATION
-    dependsOn += [CODE$ASSESS_TASK_NAME, CODE$COVERAGE_TASK_NAME, CODE$INTEGRATION_TEST_TASK_NAME]
+    dependsOn += [assess, coverage, integrationTest]
   }
 
   assembleCodeConfiguration = {
@@ -70,21 +72,21 @@ ext {
   docCodeConfiguration = {
     description = "Generates $docType documentation for Main code."
     group = CODE$GROUP_DOCUMENTATION
-    shouldRunAfter CODE$ASSESS_MAIN_TASK_NAME
+    shouldRunAfter ASSESS_MAIN_TASK
     doLast {
       logger.quiet "See documentation at $docDir"
     }
   }
 }
 
-task "${CODE$ASSESS_TASK_NAME}" {
+task assess {
   description = 'Analyze and assess code (Main & Test).'
   group = CODE$GROUP_ASSESS
-  dependsOn = [CODE$ASSESS_MAIN_TASK_NAME, CODE$ASSESS_TEST_TASK_NAME]
+  dependsOn = [ASSESS_MAIN_TASK, 'assessTest']
 }
 
-task "${CODE$COVERAGE_TASK_NAME}" {
+task coverage {
   description = 'Calculates code coverage'
   group = CODE$GROUP_VERIFICATION
-  dependsOn = [CODE$UNIT_TEST_TASK_NAME]
+  dependsOn = ['unitTest']
 }

@@ -5,8 +5,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class SomeRestController {
+  private final SomeBean bean;
+
+  public SomeRestController(final SomeBean bean) {
+    this.bean = bean;
+  }
+
   @RequestMapping("/values")
   public String get() {
-    return "Hi!";
+    return bean.fitYourNeeds("Hi!");
   }
 }

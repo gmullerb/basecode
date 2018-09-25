@@ -1,38 +1,27 @@
 # Base code Change Log
 
-## August 2018
+## September 2018
 
-* Sets Java source compatibility to 1.10.
-* Upgrades Gradle to version 4.9.
-* Upgrades Spring Boot to version 2.0.4.
-* Upgrades NodeJS to version 9.11.2.
+* First step to change the License of this project to UNLICENSE: Moves Checkstyle, PMD, Codenarc, ESLint and Stylelint configuration to its own project.
+* Adds Mockito (How do i forget this before!).
+* Rearranges alphabetically the script tasks in [`package.json`](front/package.json) in order to increase Readability.
+* Moves Gradle's plugins configurations before tasks' configuration, in order to increase Readability, since plugins mainly have general common tasks configurations.
+* Removes redundant global task: `assess`, `check`, `coverage`, `doc`, `run` and `test`, since Gradle will run it any way.
+* Removes `e2e:run` task to avoid conflict or confusion with `back:run`.
+* Removes all code tasks names configuration Constants, `CODE$ASSESS_MAIN_TASK_NAME` -> `assessMain`, `CODE$ASSESS_UNIT_TEST_TASK_NAME` -> `assessUnitTest`, `CODE$ASSESS_INTEGRATION_TEST_TASK_NAME` -> `assessIntegrationTest`, `CODE$ASSESS_TEST_TASK_NAME` -> `assessTest`, `CODE$ASSESS_TASK_NAME` -> `assess`, `CODE$UNIT_TEST_TASK_NAME` -> `unitTest`, `CODE$INTEGRATION_TEST_TASK_NAME` -> `integrationTest`, `CODE$COVERAGE_TASK_NAME` -> `coverage`, `CODE$DOCUMENTATION_TASK_NAME` -> `doc`, `GLOBAL$TEST_TASK_NAME` -> `test`, `GLOBAL$CHECK_TASK_NAME` -> `check`, `GLOBAL$RUN_TASK_NAME` -> `run`, to favor "Convention over Configuration", that makes the gradle code More Maintainable (it was hard to follow).
+* Removes `javax.xml.accessExternalDTD` property from `back` project.
+* Fixes issues with JUnit5 Test tasks configuration: was missing `useJUnitPlatform()` in order to been able run.
+* Fixes issues with `back:assess` task: was not running `checkstyleTest` task.
+* Fixes issues with `front:integrationTest` task: was not checking output dir.
+* Fixes issues with code coverage average value [`coverage.gradle`](back/local_gradle/coverage.gradle).
+* Upgrades Gradle to version 4.10.2.
 * Upgrades Checkstyle to version 8.11.
-* Upgrades PMD to version 6.6.0:
-  * Migrates rulesets to category.
-  * Adds some new excludes.
-* Upgrades CodeNarc to version 1.2.
-* Improves JUnit5 code and configuration:
-  * Changes org.junit.Assert to org.junit.jupiter.api.Assertions.
-  * Changes org.junit.Test to org.junit.jupiter.api.Test.
-  * Changes SpringRunner to SpringExtension.
-* Rearranges content of configuration files alphabetically for CodeNarc, Checkstyle, PMD and eslint, in order to make it more Maintainable.
-  * Extracts NodeJS's eslint common configuration, [`.eslintrc-node.json`](front/config/.eslintrc-node.json)
-* Updates some rules in Checkstyle, [`coding-checks.xml`](back/config/coding-checks.xml):
-  * CustomImportOrder.
-  * MethodCount.
-* Suppresses some rules for Checkstyle for test files, [`checks-suppressions.xml`](back/config/checks-suppressions.xml):
-  * MethodCount.
-* Suppresses some rules for CodeNarc rules:
-  * VariableTypeRequired.
-* Improves [`hotrun.gradle`](back/local_gradle/hotrun.gradle) to increase Maintainability:
-  * Adds Types.
-  * Adds imports.
-* Improves [`logger.gradle`](local_gradle/logger.gradle) to increase Maintainability:
-  * Adds Types.
-  * Adds imports.
-* Fixes that when obtaining files for incremental build it was not getting any on subprojects.
-  * [`files.gradle`](local_gradle/files.gradle): obtainFiles renamed to obtainFilesFromProject.
+* Upgrades PMD to version 6.7.0:
+* Upgrades Spring Boot to version 2.0.5.
+* Upgrades gulp-uglify to version 3.0.1.
+* Updates tasks' diagrams for main and `back` project.
 * Updates some README files.
+* Rearranges chronologically this file's information, starting from most recent change.
 
 ## August 2018 A
 
@@ -73,4 +62,38 @@
   * Adds a missing import: `java.time.Instant`.
   * Fixes misspelled method's name: from `createNewConnetion` to `createNewConnection`.
   * Fixes the returning type for createNewConnection: from `GradleConnector` to `ProjectConnection`.
+* Updates some README files.
+
+## August 2018
+
+* Sets Java source compatibility to 1.10.
+* Upgrades Gradle to version 4.9.
+* Upgrades Spring Boot to version 2.0.4.
+* Upgrades NodeJS to version 9.11.2.
+* Upgrades Checkstyle to version 8.11.
+* Upgrades PMD to version 6.6.0:
+  * Migrates rulesets to category.
+  * Adds some new excludes.
+* Upgrades CodeNarc to version 1.2.
+* Improves JUnit5 code and configuration:
+  * Changes org.junit.Assert to org.junit.jupiter.api.Assertions.
+  * Changes org.junit.Test to org.junit.jupiter.api.Test.
+  * Changes SpringRunner to SpringExtension.
+* Rearranges content of configuration files alphabetically for CodeNarc, Checkstyle, PMD and eslint, in order to make it more Maintainable.
+  * Extracts NodeJS's eslint common configuration, [`.eslintrc-node.json`](front/config/.eslintrc-node.json)
+* Updates some rules in Checkstyle, [`coding-checks.xml`](back/config/coding-checks.xml):
+  * CustomImportOrder.
+  * MethodCount.
+* Suppresses some rules for Checkstyle for test files, [`checks-suppressions.xml`](back/config/checks-suppressions.xml):
+  * MethodCount.
+* Suppresses some rules for CodeNarc rules:
+  * VariableTypeRequired.
+* Improves [`hotrun.gradle`](back/local_gradle/hotrun.gradle) to increase Maintainability:
+  * Adds Types.
+  * Adds imports.
+* Improves [`logger.gradle`](local_gradle/logger.gradle) to increase Maintainability:
+  * Adds Types.
+  * Adds imports.
+* Fixes that when obtaining files for incremental build it was not getting any on subprojects.
+  * [`files.gradle`](local_gradle/files.gradle): obtainFiles renamed to obtainFilesFromProject.
 * Updates some README files.

@@ -17,8 +17,24 @@ allprojects {
   buildscript {
     repositories TARGET_REPOSITORY
   }
+
+  repositories {
+    maven {
+      url 'https://dl.bintray.com/gmullerb/all.shared.config.style'
+    }
+  }
+
   repositories TARGET_REPOSITORY
+
+  configurations {
+    styleConfig
+  }
+
+  dependencies {
+    styleConfig "all.shared.config:base-style-config:${GLOBAL$BASE_STYLE_CONFIG_VERSION}"
+  }
 }
+
 ext.localGradleModuleFolder = "$rootDir/local_gradle"
 
 apply from: 'local_gradle/logger.gradle'
@@ -27,14 +43,24 @@ apply from: 'local_gradle/files.gradle'
 
 final allFilesInTree = obtainAllFilesInTree()
 
+// Plugin settings
+//////////////////
+
+checkstyle {
+  toolVersion = "${GLOBAL$CHECKSTYLE_VERSION}"
+  config = resources.text.fromArchiveEntry(configurations.styleConfig, 'common/common-checks.xml')
+}
+
+codenarc {
+  toolVersion = "${GLOBAL$CODENARC_VERSION}"
+  config = resources.text.fromArchiveEntry(configurations.styleConfig, 'gradle/gradle-rules.groovy')
+}
+
 // TASKS
 ////////
 
-final ASSESS_COMMON = "${CODE$ASSESS_TASK_NAME}Common"
-
-task "$ASSESS_COMMON" (type: Checkstyle) {
+task assessCommon (type: Checkstyle) {
   // Checkstyle task settings
-  configFile = file('config/global-checks.xml')
   classpath = files('dummy') // Required by Checkstyle, Not required for Checker modules
   source allFilesInTree
   // gradle task settings
@@ -42,39 +68,8 @@ task "$ASSESS_COMMON" (type: Checkstyle) {
   group = CODE$GROUP_ASSESS
 }
 
-task "${CODE$ASSESS_TASK_NAME}" {
-  description = 'Run all assess (common, backend & frontend).'
-  group = CODE$GROUP_ASSESS
-  dependsOn = [ASSESS_COMMON, "back:${CODE$ASSESS_TASK_NAME}", "front:${CODE$ASSESS_TASK_NAME}"]
-}
-
-task "${GLOBAL$TEST_TASK_NAME}" {
-  description = 'Run all tests (backend & frontend).'
-  group = CODE$GROUP_VERIFICATION
-  dependsOn = ["back:${GLOBAL$TEST_TASK_NAME}", "front:${GLOBAL$TEST_TASK_NAME}"]
-}
-
-task "${GLOBAL$CHECK_TASK_NAME}" {
-  description = 'Run all checks (backend & frontend).'
-  group = CODE$GROUP_VERIFICATION
-  dependsOn = [CODE$ASSESS_TASK_NAME, "back:${GLOBAL$CHECK_TASK_NAME}", "front:${GLOBAL$CHECK_TASK_NAME}"]
-}
-
-task "${CODE$COVERAGE_TASK_NAME}" {
-  description = 'Checks coverage for both project (backend & frontend).'
-  group = CODE$GROUP_VERIFICATION
-  dependsOn = ["back:${CODE$COVERAGE_TASK_NAME}", "front:${CODE$COVERAGE_TASK_NAME}"]
-}
-
-task "${CODE$DOCUMENTATION_TASK_NAME}" {
-  description = 'Generates JavaDoc and JSDoc documentation for all source'
-  group = CODE$GROUP_DOCUMENTATION
-  dependsOn = ["back:${CODE$DOCUMENTATION_TASK_NAME}", "front:${CODE$DOCUMENTATION_TASK_NAME}"]
-}
-
 task assessGradle(type: CodeNarc) {
   // CodeNarc task settings
-  configFile = file('config/gradle-rules.groovy')
   source allFilesInTree.filter { it.name.matches('.*\\.gradle') }
   reports.text.enabled = true
   // gradle task settings
@@ -83,24 +78,7 @@ task assessGradle(type: CodeNarc) {
   finalizedBy 'reportGradle'
 }
 
-task "${GLOBAL$RUN_TASK_NAME}" {
-  description = "Runs back:${GLOBAL$RUN_TASK_NAME} tasks"
-  group = GLOBAL$GROUP_RUN
-  dependsOn = ["back:${GLOBAL$RUN_TASK_NAME}"]
-}
-
-// Plugin settings
-//////////////////
-
-checkstyle {
-  toolVersion = "${GLOBAL$CHECKSTYLE_VERSION}"
-}
-
-codenarc {
-  toolVersion = "${GLOBAL$CODENARC_VERSION}"
-}
-
 // Default task
 ///////////////
 
-defaultTasks 'assessGradle', GLOBAL$CHECK_TASK_NAME
+defaultTasks 'assessGradle', 'assessCommon', 'check'

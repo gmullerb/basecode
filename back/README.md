@@ -39,10 +39,6 @@
 
 `gradlew :back:tasks`: Lists the runnable tasks for backend project.
 
-## Configuration
-
-* Updating npm dependencies: `gradlew :front:npm_update`
-
 ### Running Environments
 
 * [`application.yml`](src/main/resources/config/application.yml): Contains information common to any environment (values can be overridden independently by other files).
@@ -54,88 +50,19 @@
 
 Uses **Checkstyle** + **PMD**[1].
 
-* **Checkstyle** checks are in [`coding-checks.xml`](config/coding-checks.xml).
-  * Java Test files have some checks removed. ([`checks-suppressions.xml`](config/checks-suppressions.xml))
-    * JavaDoc styles are ignored.
-    * Allows static imports.
-* **PMD** rules are in [`coding-rules.xml`](config/coding-rules.xml).
-* The configuration is set on [`back.gradle`](back.gradle) file.
+Checkstyle and PMD, in their different modalities, can be executed independently[2]:
 
-Highlight:
+* `gradlew checkstyleMain`
+* `gradlew checkstyleUnitTest`
+* `gradlew checkstyleIntegrationTest`
+* `gradlew pmdMain`
+* `gradlew pmdUnitTest`
+* `gradlew pmdIntegrationTest`
 
-* Line length limit is ignored for lines with some patterns:
-  * Starting with `package`.
-  * Starting with `import`.
-  * Containing Test methods: `public void should*()`.
-  * Containing static Resource URI:
-    * `file:///`.
-    * `http://`.
-    * `https://`.
-    * `ftp://`.
-    * `classpath:`.
-    * `jar:`.
-    * `zip:`.
-  * Containing Spring Queries:
-    * `find*By*`.
-    * `read*By*`.
-    * `query*By*`.
-    * `get*By*`.
-    * `count*By*`.
-* Import order is forced to have some structure[2] (rule: CustomImportOrder):
-  * First same package's imports, to increase Readability (Allows to always easily locate the classes of same package, usually classes created in the project, that current class depends on).
-  * Then java and javax.
-  * Then third party.
-* Ternary operator is forced to be in multiple lines in order to increase Readability (rule: UseMultilineTernaryOperator):
+Rules are defined in [base-style-config project](https://github.com/gmullerb/base-style-config).
 
-  ```java
-    condition
-      ? expression
-      : expression
-   ```
-
-* Checks that only one method is called per line in order to increase Readability (rule: CallOnlyOneMethodPerLineForChainedCall):
-
-  ```java
-    new SomeObject(..)
-      .method2(..)
-      .method3(..);
-   ```
-
-  or
-
-  ```java
-    method1(..)
-      .method2(..)
-      .method3(..);
-   ```
-
-  or
-
-  ```java
-    object.method1(..)
-      .method2(..)
-      .method3(..);
-   ```
-
-* Checks that no Field Injection is used in the code (rule: AvoidFieldInjection).
-* For test some rules/checks are disabled in order to allow some freedom:
-  * No restriction on the number of methods.
-  * Duplication of literals is allowed, to increase test Maintainability.
-  * Throwing an Exception is allowed.
-  * Field Injection is allowed.
-  * Javadoc, obviously, is not required or checked.
-
-Checkstyle and PMD, in their different modalities, can be executed independently[3]:
-`gradlew checkstyleMain`
-`gradlew checkstyleUnitTest`
-`gradlew checkstyleIntegrationTest`
-`gradlew pmdMain`
-`gradlew pmdUnitTest`
-`gradlew pmdIntegrationTest`
-
-> [1] PMD is run after Checkstyle, since Checkstyle is "lighter".
-> [2] Although forcing this is sometime harmful since different team members can use different IDEs, but IDEs should not rule the development.
-> [3] The common parts between checks of Unit Tests and Integration Tests are done first, TEST_COMMON_SOURCE in `back/build.gradle` (if not Checkstyle will fail to report some things due to the `checks_suppressions.xml` file)
+> [1] PMD is run after Checkstyle, since Checkstyle is "lighter".  
+> [2] The common parts between checks of Unit Tests and Integration Tests are done first, see `TEST_COMMON_SOURCE` in [`back.gradle`](back.gradle) (if not Checkstyle will fail to report some things due to the `checks_suppressions.xml` file)
 
 ## Test Driven Development
 

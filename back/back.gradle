@@ -11,7 +11,7 @@ plugins {
   id 'checkstyle'
   id 'java'
   id 'jacoco'
-  id 'org.springframework.boot' version '2.0.4.RELEASE'
+  id 'org.springframework.boot' version '2.0.5.RELEASE'
   id 'pmd'
 }
 final FRONT = ':front'
@@ -28,7 +28,9 @@ dependencies {
   compile 'org.springframework.boot:spring-boot-starter-web:+'
   monitorClasspath 'org.springframework.boot:spring-boot-devtools:+'
   testCompile 'org.springframework.boot:spring-boot-starter-test:+'
-  testCompile 'org.junit.jupiter:junit-jupiter-engine:+'
+  testCompile 'org.junit.jupiter:junit-jupiter-api:+'
+  testRuntime 'org.junit.jupiter:junit-jupiter-engine:+'
+  testCompile 'org.mockito:mockito-core:+'
 }
 
 apply from: "$localGradleModuleFolder/code.gradle"
@@ -65,21 +67,37 @@ final CHECK_INTEGRATION_TEST_COMMON_CONFIGURATION = {
   }
   classpath = sourceSets.test.output.classesDirs
 }
+
+// Plugin settings
+//////////////////
+
+checkstyle {
+  config = resources.text.fromArchiveEntry(configurations.styleConfig, 'back/coding-checks.xml')
+  configProperties.suppressionFile = resources.text.fromArchiveEntry(configurations.styleConfig, 'back/checks-suppressions.xml').asFile().path
+}
+
+pmd {
+  toolVersion = BACK$PMD_VERSION
+  ruleSets = [] // required with new PMD version
+  ruleSetConfig = resources.text.fromArchiveEntry(configurations.styleConfig, 'back/coding-rules.xml')
+  consoleOutput = true
+}
+
 // TASKS
 ////////
 
 // Assessment
 /////////////
 
-task "${CODE$ASSESS_MAIN_TASK_NAME}" {
+task assessMain {
   dependsOn = [CHECKSTYLE_MAIN_TASK, PMD_MAIN_TASK]
 }
-"${CODE$ASSESS_MAIN_TASK_NAME}" assessMainCodeConfiguration
+assessMain assessMainCodeConfiguration
 
-task "${CODE$ASSESS_TEST_TASK_NAME}" {
+task assessTest {
   dependsOn = [checkstyleTest, pmdTest]
 }
-"${CODE$ASSESS_TEST_TASK_NAME}" assessTestCodeConfiguration
+assessTest assessTestCodeConfiguration
 
 // Assess Unit Test code
 ////////////////////////
@@ -98,10 +116,10 @@ task "$PMD_UNIT_TEST_TASK"(type: Pmd) {
 }
 "$PMD_UNIT_TEST_TASK" CHECK_UNIT_TEST_COMMON_CONFIGURATION
 
-task "${CODE$ASSESS_UNIT_TEST_TASK_NAME}" {
+task assessUnitTest {
   dependsOn = [CHECKSTYLE_UNIT_TEST_TASK, PMD_UNIT_TEST_TASK]
 }
-"${CODE$ASSESS_UNIT_TEST_TASK_NAME}" assessUnitTestCodeConfiguration
+assessUnitTest assessUnitTestCodeConfiguration
 
 // Assess Integration Test code
 ///////////////////////////////
@@ -120,10 +138,10 @@ task "$PMD_INTEGRATION_TEST_TASK"(type: Pmd) {
 }
 "$PMD_INTEGRATION_TEST_TASK" CHECK_INTEGRATION_TEST_COMMON_CONFIGURATION
 
-task "${CODE$ASSESS_INTEGRATION_TEST_TASK_NAME}" {
+task assessIntegrationTest {
   dependsOn = [CHECKSTYLE_INTEGRATION_TEST_TASK, PMD_INTEGRATION_TEST_TASK]
 }
-"${CODE$ASSESS_INTEGRATION_TEST_TASK_NAME}" assessIntegrationTestCodeConfiguration
+assessIntegrationTest assessIntegrationTestCodeConfiguration
 
 // Test code
 ////////////
@@ -134,24 +152,28 @@ final TEST_COMMON_CONFIGURATION = {
   }
 }
 
-task "${CODE$UNIT_TEST_TASK_NAME}"(type: Test) {
-  // Test task settings
-  ext.testReportDir = "$testReportDir/${CODE$UNIT_TEST_TASK_NAME}"
+task unitTest(type: Test) {
+  // Code task settings
+  ext.testReportDir = "$testReportDir/unitTest"
   ext.coverageReportDir = jacocoTestReport.reports.html.destination
+  // Test task settings
+  useJUnitPlatform()
   // gradle task settings
   include '**/*Test.*'
   exclude INTEGRATION_TEST_FILE_PATTERN
   finalizedBy jacocoTestReport, jacocoTestCoverageVerification
 }
-"${CODE$UNIT_TEST_TASK_NAME}" unitTestCodeConfiguration << TEST_COMMON_CONFIGURATION
+unitTest unitTestCodeConfiguration << TEST_COMMON_CONFIGURATION
 
-task "${CODE$INTEGRATION_TEST_TASK_NAME}"(type: Test) {
+task integrationTest(type: Test) {
+  // Code task settings
+  ext.reportDir = "$testReportDir/integrationTest"
   // Test task settings
-  ext.reportDir = "$testReportDir/${CODE$INTEGRATION_TEST_TASK_NAME}"
+  useJUnitPlatform()
   // gradle task settings
   include INTEGRATION_TEST_FILE_PATTERN
 }
-"${CODE$INTEGRATION_TEST_TASK_NAME}" integrationTestCodeConfiguration << TEST_COMMON_CONFIGURATION
+integrationTest integrationTestCodeConfiguration << TEST_COMMON_CONFIGURATION
 
 // Build
 ////////
@@ -169,7 +191,7 @@ task bootRunDependenciesJar(type: Jar) {
   group CODE$GROUP_BUILD
   inputs.files configurations.runtime.files
   inputs.property('springBootDependencies', SPRING_BOOT_DEPENDENCIES)
-  shouldRunAfter CODE$ASSESS_MAIN_TASK_NAME
+  shouldRunAfter assessMain
 }
 
 final COMMON_JAR_CONFIGURATION = {
@@ -204,12 +226,12 @@ fixedJar COMMON_JAR_CONFIGURATION
 ////////////////
 
 final DOC_DESCRIPTION_UPDATE = { description += '(Alias for javadoc task)' }
-task "${CODE$DOCUMENTATION_TASK_NAME}" {
+task doc {
   ext.docType = 'javaDoc'
   ext.docDir = javadoc.destinationDir
   dependsOn = ['javadoc']
 }
-"${CODE$DOCUMENTATION_TASK_NAME}" DOC_DESCRIPTION_UPDATE << docCodeConfiguration
+doc DOC_DESCRIPTION_UPDATE << docCodeConfiguration
 
 task monitorClasspath {
   description = 'Enables classpath monitoring.'
@@ -226,7 +248,7 @@ task monitorRun {
   dependsOn = ['monitorClasspath', BOOT_RUN_TASK]
 }
 
-task "${GLOBAL$RUN_TASK_NAME}" {
+task run {
   description = bootRun.description
   group = GLOBAL$GROUP_RUN
   dependsOn = [BOOT_RUN_TASK]
@@ -238,13 +260,16 @@ task "${GLOBAL$RUN_TASK_NAME}" {
 checkstyleMain {
   group = CODE$GROUP_ASSESS
 }
+
 checkstyleTest {
   group = CODE$GROUP_ASSESS
 }
+
 pmdMain {
   group = CODE$GROUP_ASSESS
   shouldRunAfter CHECKSTYLE_MAIN_TASK
 }
+
 pmdTest {
   group = CODE$GROUP_ASSESS
   shouldRunAfter 'checkstyleTest'
@@ -259,11 +284,11 @@ check checkCodeConfiguration
 
 assemble assembleCodeConfiguration
 assemble {
-  shouldRunAfter GLOBAL$CHECK_TASK_NAME
+  shouldRunAfter check
 }
 build buildCodeConfiguration
 
-final JACOCO_EXEC_FILE = files("$buildDir/jacoco/${CODE$UNIT_TEST_TASK_NAME}.exec")
+final JACOCO_EXEC_FILE = files("$buildDir/jacoco/unitTest.exec")
 
 jacocoTestReport {
   // jacocoTestReport task settings
@@ -277,7 +302,7 @@ jacocoTestReport {
     xml.enabled true
   }
   // gradle task settings
-  dependsOn CODE$UNIT_TEST_TASK_NAME
+  dependsOn unitTest
   doLast {
     showRatios jacocoTestReport.reports.xml.destination
   }
@@ -298,7 +323,7 @@ jacocoTestCoverageVerification {
     }
   }
   // gradle task settings
-  dependsOn CODE$UNIT_TEST_TASK_NAME
+  dependsOn unitTest
   shouldRunAfter jacocoTestReport
 }
 
@@ -310,7 +335,7 @@ bootRun {
   // gradle task settings
   group = GLOBAL$GROUP_RUN
   dependsOn += [PROJECT_FRONT.assemble, BOOT_RUN_DEPENDENCIES_JAR_TASK]
-  shouldRunAfter GLOBAL$CHECK_TASK_NAME
+  shouldRunAfter check
   mustRunAfter monitorClasspath
   doFirst {
     if (monitorClasspath.monitor) {
@@ -325,24 +350,9 @@ jar {
   // Jar task settings
   version = BACK$VERSION
   // gradle task settings
-  shouldRunAfter CODE$ASSESS_MAIN_TASK_NAME
+  shouldRunAfter assessMain
 }
 jar COMMON_JAR_CONFIGURATION
-
-// Plugin settings
-//////////////////
-
-checkstyle {
-  configFile = file('config/coding-checks.xml')
-  configProperties.cfgDir = "$projectDir/config"
-}
-
-pmd {
-  toolVersion = BACK$PMD_VERSION
-  ruleSets = [] // required with new PMD version
-  ruleSetFiles = files('config/coding-rules.xml')
-  consoleOutput = true
-}
 
 tasks.withType(Checkstyle) {
   reports {

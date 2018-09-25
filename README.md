@@ -1,7 +1,10 @@
 # Base code for a Web project - Java + JS
 
-This project is build with the purpose of given a base code from where you can start to develop with a little of extra work.
-This project is licensed under the terms of the MIT license.
+[![GitHub](https://img.shields.io/github/license/mashape/apistatus.svg)](/LICENSE.txt)
+
+**This project is build with the purpose of given a base code from where you can start to develop with a little of extra work.**
+
+This project is licensed under the terms of the [MIT license](/LICENSE.txt).
 
 ## Goals
 
@@ -12,10 +15,10 @@ This project is licensed under the terms of the MIT license.
 
 Some things are Opinionated based on best practices and professional experience[4].
 
-> [1] Using [Gradle Wrapper](https://docs.gradle.org/current/userguide/gradle_wrapper.html).
-> [2] Using [Gradle Node](https://github.com/srs/gradle-node-plugin).
-> [3] Another approach will be to have a server from frontend and another server for backend, but this will among other things require more resource from system and some developers can not afford that.
-> [4] Some topics have _References_ so you can dig more on details. And code has been "widely" commented to assist you to understand some fragments.
+> [1] Using [Gradle Wrapper](https://docs.gradle.org/current/userguide/gradle_wrapper.html).  
+> [2] Using [Gradle Node](https://github.com/srs/gradle-node-plugin).  
+> [3] Another approach will be to have a server from frontend and another server for backend, but this will among other things require more resource from system and some projects can not afford that.  
+> [4] Some topics in the README files have _References_ so you can dig more on details. And code has been "widely" commented to assist you to understand some fragments.  
 
 ## Features
 
@@ -55,11 +58,11 @@ Some things are Opinionated based on best practices and professional experience[
 
 ## Prerequisites
 
-* [Java](http://www.oracle.com/technetwork/java/javase/downloads).
+* [Java](https://www.java.com/en/download/help/download_options.xml) (for running Gradle), which basically comes with every operating system, so this should not be a problem.
 * [Chrome](https://www.google.com/chrome/browser/desktop/) and [Firefox](https://www.mozilla.org/en-US/firefox/) for End to End Test [1].
-* [Git](https://git-scm.com/downloads) (only if you are going to clone the project).
+* [Git](https://git-scm.com/downloads) (only if the project is going to be cloned).
 
-> [1] If you don't have one of these you could change the code in order to use only what you have.
+> [1] If only one of these is required or present, then configuration could be changed in order to use only what is required in [e2e project](front/e2e/README.md#Test-Driven-Development).
 
 ## Getting it
 
@@ -73,18 +76,18 @@ git clone https://github.com/gmullerb/basecode
 
 ## Set up
 
-+ **No need**, only download and run.
++ **No need**, only download and run (It's Gradle! Yes!).
 
 ## Running it
 
-* To check it: `gradlew` (this will run default tasks)
+* `gradlew`, will run default tasks:
   * [`:assessGradle`](#Gradle-Code).
-  * [`:back:check`](back/README.md#Gradle-Tasks-structure)
-  * [`:front:check`](front/README.md#Gradle-Tasks-structure)
+  * [`:assessCommon`](#Code-Style-Checking).
+  * [`:check`](#Gradle-Tasks-structure).
 
-* To execute it: `gradlew bootRun`
+* `gradlew run`: will run the project.
 
-* To get all the tasks for the project: `gradlew tasks --all`
+* `gradlew tasks --all`: will get all the tasks for the project.
 
 ## Project structure
 
@@ -121,9 +124,9 @@ Structure:
 * `local_gradle`: Local gradle modules folder[3].
 * `readme`: Readme attachments folder.
 
-> [1] Remember to change the root project name in `settings.gradle`, even in single project builds: `rootProject.name = 'name'` to avoid Continuous Integration servers issues.
-> [2] Both, backend and frontend projects, try to have the same folder structure.
-> [3] "Heavy" gradle logic is extracted here.
+> [1] Remember to change the root project name in `settings.gradle`, even in single project builds: `rootProject.name = 'name'` to avoid Continuous Integration servers issues.  
+> [2] Both, backend and frontend projects, try to have the same folder structure.  
+> [3] "Heavy" gradle logic is extracted here.  
 
 ### Conventions
 
@@ -132,13 +135,13 @@ Structure:
 * Configuration folders will be named: `config`.
 * Configuration files will be named ending with: `cfg.*`, `.yml`.
 * Folder's name may use `_`, but not `-`.
-* Files's name may use `-`, but not `_`.
+* Files' name may use `-`, but not `_`.
 * Throughout any documentation, `..` will represent an ellipsis to avoid possible confusion with `...` programming language operator.
 
 ### Recommendations
 
-* In `/gradle/wrapper` the `gradle-wrapper.properties` file sets `gradle-#.#-all.zip` (this file allows access to gradle source), If this is no required you may change for `gradle-#.#-bin.zip` on `gradle-wrapper.properties` for a smaller JAR file for the wrapper.
-* Don't use the _base_ or _absolute_ name on your pathnames.
+* In `/gradle/wrapper` the `gradle-wrapper.properties` file sets `gradle-#.#-all.zip` (this file allows access to gradle source), If this is no required, then change for `gradle-#.#-bin.zip` on `gradle-wrapper.properties` for a smaller JAR file for the wrapper.
+* Don't use the _base_ or _absolute_ name on project's paths names.
 
 ## Gradle Tasks structure
 
@@ -175,27 +178,10 @@ task name (..) {
 
 This way is easily to achieve any task in both projects.
 
-There is the possibility to change the name of these tasks, for that, go to the main `gradle.properties` and change any of the names defined there[2]:
-
-```groovy
-CODE$ASSESS_MAIN_TASK_NAME=assessMain
-CODE$ASSESS_UNIT_TEST_TASK_NAME=assessUnitTest
-CODE$ASSESS_INTEGRATION_TEST_TASK_NAME=assessIntegrationTest
-CODE$ASSESS_TEST_TASK_NAME=assessTest
-CODE$ASSESS_TASK_NAME=assess
-CODE$UNIT_TEST_TASK_NAME=unitTest
-CODE$INTEGRATION_TEST_TASK_NAME=integrationTest
-CODE$COVERAGE_TASK_NAME=coverage
-CODE$DOCUMENTATION_TASK_NAME=doc
-
-GLOBAL$TEST_TASK_NAME=test
-GLOBAL$CHECK_TASK_NAME=check
-```
-
 `build.gradle` defines a default task with the purpose of doing all required checks that any developer of the project should run at least to ensure some degree of code wellness on any change before submitting the code: `assessGradle` + `:front:assessLocal` + `check`
 
-> [1] Some are just alias, since real task name is too long or some plugin creates a task with different name (but same functionality), e.g.: `jacocoTestCoverageVerification`
-> [2] All tasks will generate console information and a report if possible.
+> All tasks will generate console information and a report if possible.
+> [1] Some are just alias, since real task name is too long or some plugin creates a task with different name (but same functionality), e.g.: `jacocoTestCoverageVerification`.  
 
 ## Configuration
 
@@ -236,12 +222,12 @@ Properties are defined in gradle.properties files. Properties are defined with p
 * Remote: [jcenter](https://bintray.com/bintray/jcenter).
 * Local: Maven local.
 
-By default, the project use Remote repositories, but you may use local repository, for this execute: `gradlew .. -PlocalRepo`
+By default, the project use Remote repositories, but it could be changed to use local repository, for this execute: `gradlew .. -PlocalRepo`
 
 ### Running Environments
 
-GLOBAL$DEFAULT_ENVIRONMENT is defined in the [`gradle.properties`](gradle.properties) file and sets the default environment (or profile), `dev`[1].
-You can change it using command line `gradlew bootRun -Penv=TARGET_ENVIRONMENT`.
+GLOBAL$DEFAULT_ENVIRONMENT is defined in the [`gradle.properties`](gradle.properties) file and sets the default environment (or profile) to `dev`[1].
+It could be changed using command line: `gradlew bootRun -Penv=TARGET_ENVIRONMENT`.
 
 > [1] Value should always be in lowercase.
 
@@ -263,8 +249,9 @@ Gradle is Superb! but when is about logging it has a good internal (not shared) 
 
 ### Recommendations
 
-* Change versions: versions are set to the latest with * or +, so you can get the latest version the first time you start your project,  although is recommended to set it to fixed values later.
+* Change versions: Most versions are set to the latest using `*` or `+`, so it can get the latest version the first time the project is started,  although is recommended to set it to fixed values later.
   * Test dependencies can remain dynamic since this will not affect production build, and allow to have latest improvements and fixes.
+* This project was develop under Linux so, Windows user may (or may not) need to adjust some configuration values.
 
 ## Code Style
 
@@ -274,32 +261,24 @@ Code style will allow to follow the best practices and standard coding across te
 
 The idea is to catch errors before code is submitted by developers.
 
-All projects have code style checking and have a subset of rules defined that tries to be consistent between all projects's code in order to allow "almost" the same look of the code to  both developers, backend and frontend. To highlights:
+All projects have code style checking and have subsets of rules defined. Subsets try to be similar for all the code (Backend's, Frontend's and Build's code), in order to allow "almost" the same look and rules of the code:
 
-* CamelCase naming convention.
-* Egyptian brackets.
-* Tab character checking with 2 spaces.
-* Method length limit (48 lines).
-* Method parameters number limit (4 parameters).
-* Requires semicolon at the end of the line.
-* Requires a new line break at the end of the file[1].
-* Some spacing rules are the same.
+* Rules are defined in [base-style-config project](https://github.com/gmullerb/base-style-config).
 
 In the root project is defined a Checkstyle task that do some common checks for all files of the multi-project, `assessCommon`:
 
+* Rules are defined in [base-style-config project](https://github.com/gmullerb/base-style-config).
 * The only files that are not processed are `.gitignore` files (due to some internal excluding of the Checkstyle ant task).
-* and It will ignore almost all patterns set in the `.gitignore` files, but patterns with ̣`!` and `[` + `]` will be bypassed (then avoid using these if possible)
-
-> [1] In order to be friendly with Code Versioning tools.
+* and It will ignore almost all patterns set in the `.gitignore` files, but patterns with ̣`!` and `[` + `]` will be bypassed (then avoid using these if possible).
 
 #### Gradle Code
 
-Gradle and Groovy files are checked with [CodeNarc](http://codenarc.sourceforge.net) using `assessGradle` task . To highlights:
+Gradle files (basically Groovy files) are checked with [CodeNarc](http://codenarc.sourceforge.net) using `assessGradle` task . To highlights:
 
-* Rules are defined in the [`gradle-rules.groovy`](config/gradle-rules.groovy).
+* Rules are defined in [base-style-config project](https://github.com/gmullerb/base-style-config).
 * Report will be in `build/reports/codenarc`.
 * `assessGradle` task is executed by default on the project.
-* Version is defined with GLOBAL$CODENARC_VERSION on [`gradle.properties`](gradle.properties)
+* Version is defined with `GLOBAL$CODENARC_VERSION` on [`gradle.properties`](gradle.properties)
 
 ## Test Driven Development
 
@@ -314,28 +293,28 @@ Gradle and Groovy files are checked with [CodeNarc](http://codenarc.sourceforge.
 
 ## Hot run
 
-You can use the `hotRun` task [1] to run the project and at the same time edit [2] Backend Java Code and Frontend JS code and the code will be reflected "immediately"[3].  This run will generate information that will be shown to console and into files.
+Use the `hotRun` task [1] to run the project and at the same time edit [2] Backend Java Code and Frontend JS code and the code will be reflected "immediately"[3].  This run will generate information that will be shown to console and into files.
 
 For changing configuration go to ['hotrun.gradle'](back/local_gradle/hotrun.gradle):
 
 * Tasks `concurrentClasses` and `concurrentBootRun`:
-  * showOutput: Show the output for each run in console (true or false, default: false).
-  * showError: Show error information for each run in console (true or false, default: false).
-  * outputFilePath: If set, saves the output for each run in the specified file.
-  * errorFilePath: If set, saves error information for each run in the specified file.
+  * `showOutput`: Show the output for each run in console (`true` or `false`, default: `false`).
+  * `showError`: Show error information for each run in console (`true` or `false`, default: `false`).
+  * `outputFilePath`: If set, saves the output for each run in the specified file.
+  * `errorFilePath`: If set, saves error information for each run in the specified file.
 * Task `concurrentClasses`[4]:
-  * extraParams[0]: Milliseconds between checking Code changes.
-  * extraParams[1]: Show run number and time (true or false, default: true).
+  * `extraParams[0]`: Milliseconds between checking Code changes.
+  * `extraParams[1]`: Show run number and time (`true` or `false`, default: `true`).
 
 > [1] Based in [Gradle Daemons](https://docs.gradle.org/current/userguide/custom_tasks.html#worker_api).
 > [2] If do it other way, it will possibly need 2 opened consoles for doing this.
 > [3] Every 10s Code is check this can be change.
-> [4] When setting one, you should set both.
+> [4] Both parameters must be set, even when requiring only one.
 
 ## Documentation
 
 * Both projects, back and front, can generate documentation for their code.
-* [`CHANGELOG.md`](CHANGELOG.md)[1] add information of notable changes for each version here, chronologically ordered.
+* [`CHANGELOG.md`](CHANGELOG.md): add information of notable changes for each version here, chronologically ordered [1].
 
 > [1] [Keep a Changelog](http://keepachangelog.com)
 

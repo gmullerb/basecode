@@ -14,10 +14,21 @@ final INCREMENTAL_E2E_INFO = {
 }
 final MAIN_TASK_DESCRIPTION = 'Run the end to end tests.'
 
+// Plugin settings
+//////////////////
+
+node {
+  version = FRONT$NODE_VERSION
+  download = true
+  workDir = parent.node.workDir
+  npmWorkDir = parent.node.npmWorkDir
+  nodeModulesDir = parent.node.nodeModulesDir
+}
+
 // TASKS
 ////////
 
-task "${CODE$ASSESS_TASK_NAME}"(type: NpmTask) {
+task assess(type: NpmTask) {
   // NpmTask task settings
   args = ['eslintE2E']
   // gradle task settings
@@ -26,9 +37,9 @@ task "${CODE$ASSESS_TASK_NAME}"(type: NpmTask) {
   inputs.files obtainFilesFromProject(project, '.', [FRONT$ESLINT_CFG_FILE])
   outputs.upToDateWhen { true }
 }
-"${CODE$ASSESS_TASK_NAME}" npmTaskConfiguration << INCREMENTAL_E2E_INFO
+assess eslintTaskConfiguration << INCREMENTAL_E2E_INFO
 
-task "${GLOBAL$TEST_TASK_NAME}"(type: NpmTask) {
+task test(type: NpmTask) {
   // NpmTask task settings
   args = ['e2eTest'
           , "--e2e_dir=$projectDir/src/test"
@@ -40,33 +51,16 @@ task "${GLOBAL$TEST_TASK_NAME}"(type: NpmTask) {
   description = MAIN_TASK_DESCRIPTION
   group = CODE$GROUP_TEST
   dependsOn = [':front:npmInstall', ':back:fixedJar']
-  shouldRunAfter = [CODE$ASSESS_TASK_NAME]
+  shouldRunAfter = [assess]
   outputs.dir buildDir
   doLast {
     logger.quiet "See e2e test report at $buildDir"
   }
 }
-"${GLOBAL$TEST_TASK_NAME}" mainNpmTaskConfiguration << INCREMENTAL_E2E_INFO
+test mainNpmTaskConfiguration << INCREMENTAL_E2E_INFO
 
-task "${GLOBAL$CHECK_TASK_NAME}"
-"${GLOBAL$CHECK_TASK_NAME}" checkCodeConfiguration
-"${GLOBAL$CHECK_TASK_NAME}" {
-  dependsOn = [CODE$ASSESS_TASK_NAME, GLOBAL$TEST_TASK_NAME]
-}
-
-task "${GLOBAL$RUN_TASK_NAME}" {
-  description = MAIN_TASK_DESCRIPTION
-  group = GLOBAL$GROUP_RUN
-  dependsOn = [GLOBAL$TEST_TASK_NAME]
-}
-
-// Plugin settings
-//////////////////
-
-node {
-  version = FRONT$NODE_VERSION
-  download = true
-  workDir = parent.node.workDir
-  npmWorkDir = parent.node.npmWorkDir
-  nodeModulesDir = parent.node.nodeModulesDir
+task check
+check checkCodeConfiguration
+check {
+  dependsOn = [assess, test]
 }

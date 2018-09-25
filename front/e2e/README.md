@@ -50,7 +50,7 @@ To execute this task
 
 * End to end tests are [Jasmine](https://jasmine.github.io) + [Selenium](http://www.seleniumhq.org) tests defined in `e2e-test.js` files.
   * Configuration is in [`e2e.js`](local_js/e2e.js).
-    * Browsers to use. default: [Chrome](https://www.google.com/chrome/browser/desktop/) and [Firefox](https://www.mozilla.org/en-US/firefox/).
+    * Browsers to use. default: [Chrome](https://www.google.com/chrome/browser/desktop/) and [Firefox](https://www.mozilla.org/en-US/firefox/) [1].
     ```javascript
       const BROWSERS = [Browser.CHROME, Browser.FIREFOX]
     ```
@@ -61,3 +61,5 @@ To execute this task
     * `until`: Gets conditions for use with WebDriver wait.
   * Report can be look at `/build/report.html`.
     * This can be change with `--e2e_report_dir` in [`e2e.gradle`](e2e.gradle).
+
+> [1] If only one of these is required or present, then configuration could be changed in order to use only what is required in [`e2e.js`](local_js/e2e.js) file and [`package.json`](../package.json) file.

@@ -1,6 +1,6 @@
 {
   "extends": "../config/.eslintrc-node.json",
   "rules": {
-    "no-console": "off"
+    "no-console": ["error", { "allow": ["debug"] }]
   }
 }

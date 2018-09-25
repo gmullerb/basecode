@@ -66,7 +66,20 @@ ext {
       logger.debug "$it.name command: ${args.join ' '}"
     }
   }
+  eslintTaskConfiguration = {
+    // NpmTask task settings
+    args += ["--eslintConfigFile=${resources.text.fromArchiveEntry(configurations.styleConfig, 'front/.eslintrc.json').asFile().path}"]
+  } << npmTaskConfiguration
   mainNpmTaskConfiguration = npmTaskConfiguration << INCREMENTAL_MAIN_CONFIGURATION
+  eslintMainNpmTaskConfiguration = eslintTaskConfiguration << INCREMENTAL_MAIN_CONFIGURATION
+}
+
+// Plugin settings
+//////////////////
+
+node {
+  version = FRONT$NODE_VERSION
+  download = true
 }
 
 // TASKS
@@ -75,40 +88,41 @@ ext {
 // Assessment
 /////////////
 
-task "${CODE$ASSESS_MAIN_TASK_NAME}"(type: NpmTask) {
+task assessMain(type: NpmTask) {
   // NpmTask task settings
   args = ['eslintMain']
   // gradle task settings
   inputs.files obtainFilesFromProject(project, MAIN_DIR, [FRONT$ESLINT_CFG_FILE])
 }
-"${CODE$ASSESS_MAIN_TASK_NAME}" assessMainCodeConfiguration << mainNpmTaskConfiguration << INCREMENTAL_TEST_LINT_CONFIGURATION <<
+assessMain assessMainCodeConfiguration << eslintMainNpmTaskConfiguration << INCREMENTAL_TEST_LINT_CONFIGURATION <<
   NO_OUTPUTS_CONFIGURATION
 
-task "${CODE$ASSESS_UNIT_TEST_TASK_NAME}"(type: NpmTask) {
+task assessUnitTest(type: NpmTask) {
   args = ['eslintUT']
 }
-"${CODE$ASSESS_UNIT_TEST_TASK_NAME}" npmTaskConfiguration << assessUnitTestCodeConfiguration << INCREMENTAL_TEST_LINT_CONFIGURATION <<
+assessUnitTest eslintTaskConfiguration << assessUnitTestCodeConfiguration << INCREMENTAL_TEST_LINT_CONFIGURATION <<
   INCREMENTAL_UNIT_TEST_CONFIGURATION
 
-task "${CODE$ASSESS_INTEGRATION_TEST_TASK_NAME}"(type: NpmTask) {
+task assessIntegrationTest(type: NpmTask) {
   args = ['eslintIT']
 }
-"${CODE$ASSESS_INTEGRATION_TEST_TASK_NAME}" npmTaskConfiguration << assessIntegrationTestCodeConfiguration <<
+assessIntegrationTest eslintTaskConfiguration << assessIntegrationTestCodeConfiguration <<
   INCREMENTAL_TEST_LINT_CONFIGURATION << INCREMENTAL_INTEGRATION_TEST_CONFIGURATION
 
-task "${CODE$ASSESS_TEST_TASK_NAME}"(type: NpmTask) {
+task assessTest(type: NpmTask) {
   args = ['eslintTest']
 }
-"${CODE$ASSESS_TEST_TASK_NAME}" mainNpmTaskConfiguration << assessTestCodeConfiguration << INCREMENTAL_TEST_LINT_CONFIGURATION <<
+assessTest eslintMainNpmTaskConfiguration << assessTestCodeConfiguration << INCREMENTAL_TEST_LINT_CONFIGURATION <<
   INCREMENTAL_UNIT_TEST_CONFIGURATION << INCREMENTAL_INTEGRATION_TEST_CONFIGURATION << NO_OUTPUTS_CONFIGURATION
 
 task assessCss(type: NpmTask) {
   // NpmTask task settings
-  args = ['stylelint']
+  args = ['stylelint', """--stylelintConfigFile=${resources.text
+    .fromArchiveEntry(configurations.styleConfig, 'front/.stylelintrc.json').asFile().path}"""]
   // gradle task settings
   description = 'Analyze and assess CSS files.'
   group = CODE$GROUP_ASSESS
-  shouldRunAfter CODE$ASSESS_MAIN_TASK_NAME
+  shouldRunAfter assessMain
   inputs.file '.stylelintrc.json'
   inputs.files obtainFilesFromProject(project, SOURCE_DIR, ['*.css'])
 }
@@ -124,19 +138,20 @@ task assessLocal(type: NpmTask) {
   inputs.files obtainFilesFromProject(project, 'local_js', [FRONT$CODE_FILES, FRONT$ESLINT_CFG_FILE])
   inputs.files obtainFilesFromProject(project, 'local_modules', [FRONT$CODE_FILES, FRONT$ESLINT_CFG_FILE])
 }
-assessLocal npmTaskConfiguration << NO_OUTPUTS_CONFIGURATION
+assessLocal eslintTaskConfiguration << NO_OUTPUTS_CONFIGURATION
 
-"${CODE$ASSESS_TASK_NAME}" {
+assess {
   dependsOn += [assessCss, assessLocal]
 }
 
 // Tests
 ////////
 
-task "${CODE$UNIT_TEST_TASK_NAME}"(type: NpmTask) {
-  // NpmTask task settings
-  ext.testReportDir = "$TESTS_REPORT_DIR/${CODE$UNIT_TEST_TASK_NAME}"
+task unitTest(type: NpmTask) {
+  // Code task settings
+  ext.testReportDir = "$TESTS_REPORT_DIR/unitTest"
   ext.coverageReportDir = COVERAGE_REPORT_DIR
+  // NpmTask task settings
   args = ['unitTest'
     , "--front_src_dir=$SOURCE_DIR"
     , "--front_test_report_dir=$testReportDir"
@@ -145,21 +160,25 @@ task "${CODE$UNIT_TEST_TASK_NAME}"(type: NpmTask) {
   outputs.dir testReportDir
   outputs.dir coverageReportDir
 }
-"${CODE$UNIT_TEST_TASK_NAME}" mainNpmTaskConfiguration << unitTestCodeConfiguration << INCREMENTAL_UNIT_TEST_CONFIGURATION
+unitTest mainNpmTaskConfiguration << unitTestCodeConfiguration << INCREMENTAL_UNIT_TEST_CONFIGURATION
 
-task "${CODE$INTEGRATION_TEST_TASK_NAME}"(type: NpmTask) {
-  ext.reportDir = "$TESTS_REPORT_DIR/${CODE$INTEGRATION_TEST_TASK_NAME}"
+task integrationTest(type: NpmTask) {
+  // Code task settings
+  ext.reportDir = "$TESTS_REPORT_DIR/integrationTest"
+  // NpmTask task settings
   args = ['integrationTest'
     , "--front_src_dir=$SOURCE_DIR"
     , "--front_test_report_dir=$reportDir"]
+  // gradle task settings
+  outputs.dir reportDir
 }
-"${CODE$INTEGRATION_TEST_TASK_NAME}" mainNpmTaskConfiguration << integrationTestCodeConfiguration << INCREMENTAL_INTEGRATION_TEST_CONFIGURATION
+integrationTest mainNpmTaskConfiguration << integrationTestCodeConfiguration << INCREMENTAL_INTEGRATION_TEST_CONFIGURATION
 
-task "${GLOBAL$TEST_TASK_NAME}"
-"${GLOBAL$TEST_TASK_NAME}" testCodeConfiguration
+task test
+test testCodeConfiguration
 
-task "${GLOBAL$CHECK_TASK_NAME}"
-"${GLOBAL$CHECK_TASK_NAME}" checkCodeConfiguration
+task check
+check checkCodeConfiguration
 
 // Build
 ////////
@@ -173,7 +192,7 @@ task assemble(type: NpmTask) {
   // gradle task settings
   inputs.file 'local_js/build.js'
   outputs.dir webDir
-  shouldRunAfter CODE$ASSESS_MAIN_TASK_NAME
+  shouldRunAfter assessMain
 }
 assemble mainNpmTaskConfiguration << assembleCodeConfiguration
 
@@ -198,7 +217,7 @@ task "$BUILD_TASK" {
 // Documentation
 ////////////////
 
-task "${CODE$DOCUMENTATION_TASK_NAME}"(type: NpmTask) {
+task doc(type: NpmTask) {
   // NpmTask task settings
   args = ['jsdoc']
   // gradle task settings
@@ -207,12 +226,4 @@ task "${CODE$DOCUMENTATION_TASK_NAME}"(type: NpmTask) {
   inputs.file 'config/jsdoc.cfg.json'
   outputs.dir docDir
 }
-"${CODE$DOCUMENTATION_TASK_NAME}" mainNpmTaskConfiguration << docCodeConfiguration
-
-// Plugin settings
-//////////////////
-
-node {
-  version = FRONT$NODE_VERSION
-  download = true
-}
+doc mainNpmTaskConfiguration << docCodeConfiguration

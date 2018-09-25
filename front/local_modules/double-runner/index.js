@@ -24,11 +24,13 @@ const serverChecker = {
               if (error) {
                 onExecuteError(stdout, stderr);
                 process.exit(1);
-              } else {
+              }
+              else {
                 onExecuteSuccess(stdout, stderr);
               }
             });
-          } else {
+          }
+          else {
             thread.kill();
             onServerError(res.statusCode);
             process.exit(1);
@@ -47,7 +49,8 @@ const serverChecker = {
             onExecuteError});
         });
       }, tryTimeout);
-    } else {
+    }
+    else {
       thread.kill();
       onServerError(-1);
       process.exit(1);
@@ -87,7 +90,8 @@ const runner = ({command, args = [], onError = () => {}} = {}, runCfg, run = ser
     });
   if(thread.pid) {
     run.run(thread, runCfg);
-  } else {
+  }
+  else {
     onError();
   }
 };

@@ -6,18 +6,18 @@
   "license": "",
   "private": true,
   "scripts": {
-    "eslintMain": "eslint --color \"src/main/**/*.js\"",
-    "eslintUT": "eslint --color config/test/common-test.cfg.js config/test/unit-test.cfg.js \"src/test/**/*.test.js\"",
-    "eslintIT": "eslint --color config/test/common-test.cfg.js \"config/test/integration/*.js\" \"src/test/**/*.integration-test.js\"",
-    "eslintE2E": "eslint --color \"e2e/local_js/**/*.js\" \"e2e/src/**/*.js\"",
-    "eslintTest": "eslint --color \"config/test/**/*.js\" \"src/test/**/*.js\"",
-    "unitTest": "karma start config/test/unit-test.cfg.js",
-    "integrationTest": "karma start config/test/integration/integration-test.cfg.js",
     "e2eTest": "node e2e/local_js/run.e2e.js",
+    "eslintE2E": "eslint --config ${npm_config_eslintConfigFile} --color \"e2e/local_js/**/*.js\" \"e2e/src/**/*.js\"",
+    "eslintIT": "eslint --config ${npm_config_eslintConfigFile} --color config/test/common-test.cfg.js \"config/test/integration/*.js\" \"src/test/**/*.integration-test.js\"",
+    "eslintLocal": "eslint --config ${npm_config_eslintConfigFile} --color \"local_js/**/*.js\" \"local_modules/**/*.js\"",
+    "eslintMain": "eslint --config ${npm_config_eslintConfigFile} --color \"src/main/**/*.js\"",
+    "eslintTest": "eslint --config ${npm_config_eslintConfigFile} --color \"config/test/**/*.js\" \"src/test/**/*.js\"",
+    "eslintUT": "eslint --config ${npm_config_eslintConfigFile} --color config/test/common-test.cfg.js config/test/unit-test.cfg.js \"src/test/**/*.test.js\"",
+    "integrationTest": "karma start config/test/integration/integration-test.cfg.js",
     "jsbuild": "gulp --gulpfile local_js/build.js --cwd ./",
     "jsdoc": "jsdoc --configure config/jsdoc.cfg.json",
-    "stylelint": "stylelint \"src/main/modules/**/*.css\"",
-    "eslintLocal": "eslint --color \"local_js/**/*.js\" \"local_modules/**/*.js\""
+    "stylelint": "stylelint --config ${npm_config_stylelintConfigFile} \"src/main/modules/**/*.css\"",
+    "unitTest": "karma start config/test/unit-test.cfg.js"
   },
   "devDependencies": {
     "chromedriver": "^2.41.0",
@@ -28,7 +28,7 @@
     "gulp": "*",
     "gulp-filter": "^5.0.1",
     "gulp-rename": "*",
-    "gulp-uglify": "*",
+    "gulp-uglify": "^3.0.1",
     "jasmine": "^3.2.0",
     "jasmine-core": "*",
     "jasmine-pretty-html-reporter": "*",
@@ -47,5 +47,8 @@
     "selenium-webdriver": "*",
     "stylelint": "*",
     "stylelint-config-standard": "*"
+  },
+  "eslintConfig": {
+    "root": true
   }
 }
