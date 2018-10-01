@@ -9,8 +9,8 @@ group = 'Utility'
 ////////////
 
 final INCREMENTAL_E2E_INFO = {
-  inputs.files obtainFilesFromProject(project, 'src', [FRONT$CODE_FILES])
-  inputs.files obtainFilesFromProject(project, 'local_js', [FRONT$CODE_FILES])
+  inputs.files fileLister.obtainFullFileTree("$projectDir/src", [includes: [FRONT$CODE_FILES]])
+  inputs.files fileLister.obtainFullFileTree("$projectDir/local_js", [includes: [FRONT$CODE_FILES]])
 }
 final MAIN_TASK_DESCRIPTION = 'Run the end to end tests.'
 
@@ -34,7 +34,7 @@ task assess(type: NpmTask) {
   // gradle task settings
   description = 'Analyze and assess End to End test code.'
   group = CODE$GROUP_ASSESS
-  inputs.files obtainFilesFromProject(project, '.', [FRONT$ESLINT_CFG_FILE])
+  inputs.files fileLister.obtainFullFileTree("$projectDir", [includes: [FRONT$ESLINT_CFG_FILE]])
   outputs.upToDateWhen { true }
 }
 assess eslintTaskConfiguration << INCREMENTAL_E2E_INFO

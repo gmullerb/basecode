@@ -2,11 +2,12 @@
 //  Licensed under the MIT License (MIT), see LICENSE.txt
 
 plugins {
+  id 'all.shared.gradle.file-lister' version '1.0'
   id 'checkstyle'
   id 'codenarc'
 }
 
-final LOCAL_REPO = project.hasProperty('localRepo')
+final LOCAL_REPO = hasProperty('localRepo')
 final TARGET_REPOSITORY = { LOCAL_REPO ? mavenLocal() : jcenter() }
 logger.info "Gradle Repository: ${LOCAL_REPO ? 'local' : 'remote'} (change it to local with -PlocalRepo)"
 
@@ -39,9 +40,8 @@ ext.localGradleModuleFolder = "$rootDir/local_gradle"
 
 apply from: 'local_gradle/logger.gradle'
 apply from: 'local_gradle/extra.gradle'
-apply from: 'local_gradle/files.gradle'
 
-final allFilesInTree = obtainAllFilesInTree()
+final allFilesInTree = fileLister.obtainPartialFileTree()
 
 // Plugin settings
 //////////////////

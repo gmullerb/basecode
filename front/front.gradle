@@ -25,7 +25,7 @@ final INCREMENTAL_MAIN_CONFIGURATION = {
 }
 
 final INCREMENTAL_LINT_CONFIGURATION = {
-  inputs.files obtainFilesFromProject(project, '.', [FRONT$ESLINT_CFG_FILE])
+  inputs.files fileLister.obtainFullFileTree("$projectDir", [includes: [FRONT$ESLINT_CFG_FILE]])
 }
 
 final NO_OUTPUTS_CONFIGURATION = {
@@ -48,7 +48,7 @@ final INCREMENTAL_INTEGRATION_TEST_CONFIGURATION = {
 } << INCREMENTAL_COMMON_TEST_CONFIGURATION
 
 final INCREMENTAL_TEST_LINT_CONFIGURATION = {
-  inputs.files obtainFilesFromProject(project, TEST_DIR, [FRONT$ESLINT_CFG_FILE])
+  inputs.files fileLister.obtainFullFileTree("$projectDir/$TEST_DIR", [includes: [FRONT$ESLINT_CFG_FILE]])
 } << INCREMENTAL_LINT_CONFIGURATION
 
 final BUILD_TASK = 'build'
@@ -92,7 +92,7 @@ task assessMain(type: NpmTask) {
   // NpmTask task settings
   args = ['eslintMain']
   // gradle task settings
-  inputs.files obtainFilesFromProject(project, MAIN_DIR, [FRONT$ESLINT_CFG_FILE])
+  inputs.files fileLister.obtainFullFileTree("$projectDir/$MAIN_DIR", [includes: [FRONT$ESLINT_CFG_FILE]])
 }
 assessMain assessMainCodeConfiguration << eslintMainNpmTaskConfiguration << INCREMENTAL_TEST_LINT_CONFIGURATION <<
   NO_OUTPUTS_CONFIGURATION
@@ -124,7 +124,7 @@ task assessCss(type: NpmTask) {
   group = CODE$GROUP_ASSESS
   shouldRunAfter assessMain
   inputs.file '.stylelintrc.json'
-  inputs.files obtainFilesFromProject(project, SOURCE_DIR, ['*.css'])
+  inputs.files fileLister.obtainFullFileTree("$projectDir/$SOURCE_DIR", [includes: ['*.css']])
 }
 assessCss mainNpmTaskConfiguration << NO_OUTPUTS_CONFIGURATION
 
@@ -135,8 +135,8 @@ task assessLocal(type: NpmTask) {
   description = 'Analyze and assess Local code'
   group = CODE$GROUP_ASSESS
   inputs.file FRONT$ESLINT_CFG_FILE
-  inputs.files obtainFilesFromProject(project, 'local_js', [FRONT$CODE_FILES, FRONT$ESLINT_CFG_FILE])
-  inputs.files obtainFilesFromProject(project, 'local_modules', [FRONT$CODE_FILES, FRONT$ESLINT_CFG_FILE])
+  inputs.files fileLister.obtainFullFileTree("$projectDir/local_js", [includes: [FRONT$CODE_FILES, FRONT$ESLINT_CFG_FILE]])
+  inputs.files fileLister.obtainFullFileTree("$projectDir/local_modules", [includes: [FRONT$CODE_FILES, FRONT$ESLINT_CFG_FILE]])
 }
 assessLocal eslintTaskConfiguration << NO_OUTPUTS_CONFIGURATION
 

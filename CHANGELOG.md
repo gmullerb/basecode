@@ -1,8 +1,16 @@
 # Base code Change Log
 
+## October 2018
+
+* Second step to change the License of this project to UNLICENSE: Moves `files.gradle` to its own project, [file-lister](https://github.com/gmullerb/file-lister).
+* Changes from `karma-jasmine-jquery` to `karma-jasmine-jquery-2`, which has no dependencies on `bower`.
+* Upgrades base-style-config to version 1.0.4.
+  * Does some code changes to follow new version.
+* Updates some README files.
+
 ## September 2018
 
-* First step to change the License of this project to UNLICENSE: Moves Checkstyle, PMD, Codenarc, ESLint and Stylelint configuration to its own project.
+* First step to change the License of this project to UNLICENSE: Moves Checkstyle, PMD, Codenarc, ESLint and Stylelint configuration to its own project, [base-style-config](https://github.com/gmullerb/base-style-config).
 * Adds Mockito (How do i forget this before!).
 * Rearranges alphabetically the script tasks in [`package.json`](front/package.json) in order to increase Readability.
 * Moves Gradle's plugins configurations before tasks' configuration, in order to increase Readability, since plugins mainly have general common tasks configurations.
@@ -16,7 +24,7 @@
 * Fixes issues with code coverage average value [`coverage.gradle`](back/local_gradle/coverage.gradle).
 * Upgrades Gradle to version 4.10.2.
 * Upgrades Checkstyle to version 8.11.
-* Upgrades PMD to version 6.7.0:
+* Upgrades PMD to version 6.7.0.
 * Upgrades Spring Boot to version 2.0.5.
 * Upgrades gulp-uglify to version 3.0.1.
 * Updates tasks' diagrams for main and `back` project.

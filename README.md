@@ -44,7 +44,7 @@ Some things are Opinionated based on best practices and professional experience[
   * Gradle: [CodeNarc](http://codenarc.sourceforge.net).
 * Test Driven Development.
   * Unit Test & Integration Test:
-    * Java: [JUnit](http://junit.org).
+    * Java: [JUnit](http://junit.org) & [Mockito](http://javadoc.io/page/org.mockito/mockito-core/latest/org/mockito/Mockito.html).
     * Javascript: [Jasmine](https://jasmine.github.io) & [Karma](https://karma-runner.github.io).
   * End to end tests:
     * Javascript: [Selenium](http://www.seleniumhq.org).
@@ -66,7 +66,7 @@ Some things are Opinionated based on best practices and professional experience[
 
 ## Getting it
 
-Clone or download the project[1], In the desired folder execute:
+Clone or download the project[1], in the desired folder execute:
 
 ```sh
 git clone https://github.com/gmullerb/basecode

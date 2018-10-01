@@ -13,7 +13,8 @@ project.gradle.useLogger(new BuildAdapter() {
       || result.failure.cause.cause.message.empty == null
       || logger.debugEnabled) {
       result.rethrowFailure()
-    } else {
+    }
+    else {
       logger.error "$result.failure.cause.cause.message"
     }
 }})
