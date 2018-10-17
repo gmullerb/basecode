@@ -68,7 +68,7 @@ ext {
   }
   eslintTaskConfiguration = {
     // NpmTask task settings
-    args += ["--eslintConfigFile=${resources.text.fromArchiveEntry(configurations.styleConfig, 'front/.eslintrc.json').asFile().path}"]
+    args += [baseStyleConfig.front.eslintNpmConfigArg]
   } << npmTaskConfiguration
   mainNpmTaskConfiguration = npmTaskConfiguration << INCREMENTAL_MAIN_CONFIGURATION
   eslintMainNpmTaskConfiguration = eslintTaskConfiguration << INCREMENTAL_MAIN_CONFIGURATION
@@ -117,8 +117,7 @@ assessTest eslintMainNpmTaskConfiguration << assessTestCodeConfiguration << INCR
 
 task assessCss(type: NpmTask) {
   // NpmTask task settings
-  args = ['stylelint', """--stylelintConfigFile=${resources.text
-    .fromArchiveEntry(configurations.styleConfig, 'front/.stylelintrc.json').asFile().path}"""]
+  args = ['stylelint', baseStyleConfig.front.stylelintNpmConfigArg]
   // gradle task settings
   description = 'Analyze and assess CSS files.'
   group = CODE$GROUP_ASSESS

@@ -2,9 +2,7 @@
 //  Licensed under the MIT License (MIT), see LICENSE.txt
 
 plugins {
-  id 'all.shared.gradle.file-lister' version '1.0'
-  id 'checkstyle'
-  id 'codenarc'
+  id 'all.shared.gradle.project-style-checker' version '1.0.2'
 }
 
 final LOCAL_REPO = hasProperty('localRepo')
@@ -19,64 +17,12 @@ allprojects {
     repositories TARGET_REPOSITORY
   }
 
-  repositories {
-    maven {
-      url 'https://dl.bintray.com/gmullerb/all.shared.config.style'
-    }
-  }
-
   repositories TARGET_REPOSITORY
-
-  configurations {
-    styleConfig
-  }
-
-  dependencies {
-    styleConfig "all.shared.config:base-style-config:${GLOBAL$BASE_STYLE_CONFIG_VERSION}"
-  }
 }
 
 ext.localGradleModuleFolder = "$rootDir/local_gradle"
 
 apply from: 'local_gradle/logger.gradle'
-apply from: 'local_gradle/extra.gradle'
-
-final allFilesInTree = fileLister.obtainPartialFileTree()
-
-// Plugin settings
-//////////////////
-
-checkstyle {
-  toolVersion = "${GLOBAL$CHECKSTYLE_VERSION}"
-  config = resources.text.fromArchiveEntry(configurations.styleConfig, 'common/common-checks.xml')
-}
-
-codenarc {
-  toolVersion = "${GLOBAL$CODENARC_VERSION}"
-  config = resources.text.fromArchiveEntry(configurations.styleConfig, 'gradle/gradle-rules.groovy')
-}
-
-// TASKS
-////////
-
-task assessCommon (type: Checkstyle) {
-  // Checkstyle task settings
-  classpath = files('dummy') // Required by Checkstyle, Not required for Checker modules
-  source allFilesInTree
-  // gradle task settings
-  description = 'Run Common Checkstyle analysis for all files.'
-  group = CODE$GROUP_ASSESS
-}
-
-task assessGradle(type: CodeNarc) {
-  // CodeNarc task settings
-  source allFilesInTree.filter { it.name.matches('.*\\.gradle') }
-  reports.text.enabled = true
-  // gradle task settings
-  description = 'Run Codenarc analysis for all gradle files.'
-  group = 'Gradle assessment'
-  finalizedBy 'reportGradle'
-}
 
 // Default task
 ///////////////

@@ -265,7 +265,7 @@ All projects have code style checking and have subsets of rules defined. Subsets
 
 * Rules are defined in [base-style-config project](https://github.com/gmullerb/base-style-config).
 
-In the root project is defined a Checkstyle task that do some common checks for all files of the multi-project, `assessCommon`:
+In the root project is defined a Checkstyle task, defined by [project-style-checker plugin](https://github.com/gmullerb/project-style-checker), that do some common checks for all files of the multi-project, `assessCommon`:
 
 * Rules are defined in [base-style-config project](https://github.com/gmullerb/base-style-config).
 * The only files that are not processed are `.gitignore` files (due to some internal excluding of the Checkstyle ant task).
@@ -273,12 +273,43 @@ In the root project is defined a Checkstyle task that do some common checks for 
 
 #### Gradle Code
 
-Gradle files (basically Groovy files) are checked with [CodeNarc](http://codenarc.sourceforge.net) using `assessGradle` task . To highlights:
+Gradle files (basically Groovy files) are checked with [CodeNarc](http://codenarc.sourceforge.net) using [project-style-checker plugin](https://github.com/gmullerb/project-style-checker). To highlights:
 
 * Rules are defined in [base-style-config project](https://github.com/gmullerb/base-style-config).
 * Report will be in `build/reports/codenarc`.
 * `assessGradle` task is executed by default on the project.
 * Version is defined with `GLOBAL$CODENARC_VERSION` on [`gradle.properties`](gradle.properties)
+
+
+#### Convention over Configuration [1]
+
+* Use `BASE_STYLE_CONFIG_VERSION` to establish the version of [Base Style Configuration](https://github.com/gmullerb/base-style-config) to be used, e.g. [`gradle.properties`](gradle.properties):
+
+  * If not set, then last version will be used.
+
+```gradle
+ BASE_STYLE_CONFIG_VERSION=1.0.6
+```
+
+* Use `CHECKSTYLE_VERSION` to establish the version of [Checkstyle](http://checkstyle.sourceforge.net) to be used, e.g. [`gradle.properties`](gradle.properties):
+
+  * If not set, Gradle's default version will be used.
+    * At the present, should be set in order to be compatible with the set of rules defined by [Base Style Configuration](https://github.com/gmullerb/base-style-config)
+
+```gradle
+ CHECKSTYLE_VERSION=8.13
+```
+
+* *Use `CODENARC_VERSION` to establish the version of [CodeNarc](http://codenarc.sourceforge.net) to be used, e.g. [`gradle.properties`](gradle.properties):
+
+  * If not set, Gradle's default version will be used.
+    * At the present, should be set in order to be compatible with the set of rules defined by [Base Style Configuration](https://github.com/gmullerb/base-style-config)
+
+```gradle
+ CODENARC_VERSION=1.2
+```
+
+> [1] This is done by the [project-style-checker plugin](https://github.com/gmullerb/project-style-checker).
 
 ## Test Driven Development
 

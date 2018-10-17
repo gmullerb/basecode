@@ -24,7 +24,7 @@ public class MainIntegrationTest {
   private Environment environment;
 
   @Test
-  public void someTest() {
+  public void shouldSomeTest() {
     assertAll("with values",
       () -> assertEquals("test1", value1),
       () -> assertEquals("value2", environment.getProperty("mysettings.key2")));

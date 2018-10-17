@@ -1,5 +1,16 @@
 # Base code Change Log
 
+## October 2018 A
+
+* Third step to change the License of this project to UNLICENSE: Use [project-style-checker plugin](https://github.com/gmullerb/project-style-checker).
+  * Removes `assessCommon` & `assessGradle` tasks.
+  * Removes `extra.gradle`.
+* Upgrades base-style-config to version 1.0.6.
+  * Does some code changes to follow new version.
+* Upgrades Checkstyle to version 8.12.
+* Upgrades PMD to version 6.8.0.
+* Updates some README files.
+
 ## October 2018
 
 * Second step to change the License of this project to UNLICENSE: Moves `files.gradle` to its own project, [file-lister](https://github.com/gmullerb/file-lister).

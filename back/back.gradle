@@ -71,17 +71,13 @@ final CHECK_INTEGRATION_TEST_COMMON_CONFIGURATION = {
 // Plugin settings
 //////////////////
 
-checkstyle {
-  config = resources.text.fromArchiveEntry(configurations.styleConfig, 'back/coding-checks.xml')
-  configProperties.suppressionFile = resources.text.fromArchiveEntry(configurations.styleConfig, 'back/checks-suppressions.xml').asFile().path
-}
+baseStyleConfig.back.complement(checkstyle)
 
 pmd {
   toolVersion = BACK$PMD_VERSION
-  ruleSets = [] // required with new PMD version
-  ruleSetConfig = resources.text.fromArchiveEntry(configurations.styleConfig, 'back/coding-rules.xml')
   consoleOutput = true
 }
+baseStyleConfig.back.complement(pmd)
 
 // TASKS
 ////////

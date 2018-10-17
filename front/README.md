@@ -67,14 +67,9 @@ Frontend allows for underscore notation for npm tasks thanks to the plugin in us
 Uses **[ESlint](https://eslint.org)** + **[StyleLint](https://github.com/stylelint/stylelint)**.
 
 * **[ESlint](https://eslint.org)** rules are spread all over the `front` folder through `.eslintrc.json` files.
-* **[StyleLint](https://github.com/stylelint/stylelint)** are defined in [`.stylelintrc.json`](.stylelintrc.json)
 * The configuration is set in [`package.json`](package.json) file.
 
-To highlights:
-
-* Line length limit is ignored for lines with some patterns:
-  * With URLs.
-* Strings should use double quotes for strings [1].
+Rules are defined in [base-style-config project](https://github.com/gmullerb/base-style-config).
 
 To execute these tasks individually:
 `gradlew assessMain`: ESLint checks
