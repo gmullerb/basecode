@@ -8,10 +8,11 @@ buildscript {
 }
 
 plugins {
+  id 'all.shared.gradle.code-common-tasks' version '1.0.0'
   id 'checkstyle'
   id 'java'
   id 'jacoco'
-  id 'org.springframework.boot' version '2.0.5.RELEASE'
+  id 'org.springframework.boot' version '2.1.0.RELEASE'
   id 'pmd'
 }
 final FRONT = ':front'
@@ -33,21 +34,11 @@ dependencies {
   testCompile 'org.mockito:mockito-core:+'
 }
 
-apply from: "$localGradleModuleFolder/code.gradle"
 apply from: 'local_gradle/coverage.gradle'
 apply from: 'local_gradle/hotrun.gradle'
 
 // CONSTANTS
 ////////////
-
-final CHECKSTYLE_MAIN_TASK = 'checkstyleMain'
-final CHECKSTYLE_UNIT_TEST_TASK = 'checkstyleUnitTest'
-final CHECKSTYLE_INTEGRATION_TEST_TASK = 'checkstyleIntegrationTest'
-final PMD_MAIN_TASK = 'pmdMain'
-final PMD_UNIT_TEST_TASK = 'pmdUnitTest'
-final PMD_INTEGRATION_TEST_TASK = 'pmdIntegrationTest'
-final BOOT_RUN_TASK = 'bootRun'
-final BOOT_RUN_DEPENDENCIES_JAR_TASK = 'bootRunDependenciesJar'
 
 final INTEGRATION_TEST_FILE_NAME = 'IntegrationTest'
 final INTEGRATION_TEST_FILE_PATTERN = "**/*$INTEGRATION_TEST_FILE_NAME.*"
@@ -58,7 +49,8 @@ final TEST_COMMON_SOURCE = sourceSets.test.allJava.findAll {
 final CHECK_UNIT_TEST_COMMON_CONFIGURATION = {
   source = (TEST_COMMON_SOURCE + sourceSets.test.allJava.findAll {
     it.name.matches(".*(?<!$INTEGRATION_TEST_FILE_NAME)\\..*")
-  }).unique()
+  })
+  .unique()
   classpath = sourceSets.test.output.classesDirs
 }
 final CHECK_INTEGRATION_TEST_COMMON_CONFIGURATION = {
@@ -82,62 +74,47 @@ baseStyleConfig.back.complement(pmd)
 // TASKS
 ////////
 
-// Assessment
-/////////////
-
-task assessMain {
-  dependsOn = [CHECKSTYLE_MAIN_TASK, PMD_MAIN_TASK]
-}
-assessMain assessMainCodeConfiguration
-
-task assessTest {
-  dependsOn = [checkstyleTest, pmdTest]
-}
-assessTest assessTestCodeConfiguration
-
 // Assess Unit Test code
 ////////////////////////
 
-task "$CHECKSTYLE_UNIT_TEST_TASK"(type: Checkstyle) {
+task checkstyleUnitTest(type: Checkstyle) {
   description = 'Run Checkstyle analysis for Unit test code.'
-  group = CODE$GROUP_ASSESS
-  shouldRunAfter CHECKSTYLE_MAIN_TASK
+  group = codeCommonTasks.groupForAssessTasks
+  shouldRunAfter checkstyleMain
 }
-"$CHECKSTYLE_UNIT_TEST_TASK" CHECK_UNIT_TEST_COMMON_CONFIGURATION
+checkstyleUnitTest CHECK_UNIT_TEST_COMMON_CONFIGURATION
 
-task "$PMD_UNIT_TEST_TASK"(type: Pmd) {
+task pmdUnitTest(type: Pmd) {
   description = 'Run PMD analysis for Unit test code.'
-  group = CODE$GROUP_ASSESS
-  shouldRunAfter PMD_MAIN_TASK, CHECKSTYLE_UNIT_TEST_TASK
+  group = codeCommonTasks.groupForAssessTasks
+  shouldRunAfter 'pmdMain', checkstyleUnitTest
 }
-"$PMD_UNIT_TEST_TASK" CHECK_UNIT_TEST_COMMON_CONFIGURATION
+pmdUnitTest CHECK_UNIT_TEST_COMMON_CONFIGURATION
 
 task assessUnitTest {
-  dependsOn = [CHECKSTYLE_UNIT_TEST_TASK, PMD_UNIT_TEST_TASK]
+  dependsOn 'checkstyleUnitTest', 'pmdUnitTest'
 }
-assessUnitTest assessUnitTestCodeConfiguration
 
 // Assess Integration Test code
 ///////////////////////////////
 
-task "$CHECKSTYLE_INTEGRATION_TEST_TASK"(type: Checkstyle) {
+task checkstyleIntegrationTest(type: Checkstyle) {
   description = 'Run Checkstyle analysis for Integration test code.'
-  group = CODE$GROUP_ASSESS
-  shouldRunAfter CHECKSTYLE_MAIN_TASK
+  group = codeCommonTasks.groupForAssessTasks
+  shouldRunAfter checkstyleMain
 }
-"$CHECKSTYLE_INTEGRATION_TEST_TASK" CHECK_INTEGRATION_TEST_COMMON_CONFIGURATION
+checkstyleIntegrationTest CHECK_INTEGRATION_TEST_COMMON_CONFIGURATION
 
-task "$PMD_INTEGRATION_TEST_TASK"(type: Pmd) {
+task pmdIntegrationTest(type: Pmd) {
   description = 'Run PMD analysis for Integration test code.'
-  group = CODE$GROUP_ASSESS
-  shouldRunAfter PMD_MAIN_TASK, CHECKSTYLE_INTEGRATION_TEST_TASK
+  group = codeCommonTasks.groupForAssessTasks
+  shouldRunAfter 'pmdMain', 'checkstyleIntegrationTest'
 }
-"$PMD_INTEGRATION_TEST_TASK" CHECK_INTEGRATION_TEST_COMMON_CONFIGURATION
+pmdIntegrationTest CHECK_INTEGRATION_TEST_COMMON_CONFIGURATION
 
 task assessIntegrationTest {
-  dependsOn = [CHECKSTYLE_INTEGRATION_TEST_TASK, PMD_INTEGRATION_TEST_TASK]
+  dependsOn 'checkstyleIntegrationTest', 'pmdIntegrationTest'
 }
-assessIntegrationTest assessIntegrationTestCodeConfiguration
 
 // Test code
 ////////////
@@ -149,27 +126,21 @@ final TEST_COMMON_CONFIGURATION = {
 }
 
 task unitTest(type: Test) {
-  // Code task settings
-  ext.testReportDir = "$testReportDir/unitTest"
-  ext.coverageReportDir = jacocoTestReport.reports.html.destination
   // Test task settings
   useJUnitPlatform()
   // gradle task settings
   include '**/*Test.*'
   exclude INTEGRATION_TEST_FILE_PATTERN
-  finalizedBy jacocoTestReport, jacocoTestCoverageVerification
 }
-unitTest unitTestCodeConfiguration << TEST_COMMON_CONFIGURATION
+unitTest TEST_COMMON_CONFIGURATION
 
 task integrationTest(type: Test) {
-  // Code task settings
-  ext.reportDir = "$testReportDir/integrationTest"
   // Test task settings
   useJUnitPlatform()
   // gradle task settings
   include INTEGRATION_TEST_FILE_PATTERN
 }
-integrationTest integrationTestCodeConfiguration << TEST_COMMON_CONFIGURATION
+integrationTest TEST_COMMON_CONFIGURATION
 
 // Build
 ////////
@@ -184,10 +155,10 @@ task bootRunDependenciesJar(type: Jar) {
   }
   // gradle task settings
   description 'Sets the classpath into a JAR for using on bootRun.'
-  group CODE$GROUP_BUILD
+  group = codeCommonTasks.groupForBuildTasks
   inputs.files configurations.runtime.files
   inputs.property('springBootDependencies', SPRING_BOOT_DEPENDENCIES)
-  shouldRunAfter assessMain
+  shouldRunAfter codeCommonTasks.assessMainTask
 }
 
 final COMMON_JAR_CONFIGURATION = {
@@ -209,25 +180,17 @@ task fixedJar(type: Jar) {
   classifier = 'fix'
   from jar.source
   manifest {
-    attributes 'Class-Path': "$PROJECT_FRONT.jar.archivePath $bootRunDependenciesJar.archivePath"
+    attributes 'Class-Path': "$PROJECT_FRONT.assemble.archivePath $bootRunDependenciesJar.archivePath"
   }
   // gradle task settings
   description 'Assembles a fixed JAR archive containing the main classes and fixed classpath for all dependencies.'
-  group CODE$GROUP_BUILD
-  dependsOn += [PROJECT_FRONT.jar, BOOT_RUN_DEPENDENCIES_JAR_TASK]
+  group = codeCommonTasks.groupForBuildTasks
+  dependsOn PROJECT_FRONT.assemble, 'bootRunDependenciesJar'
 }
 fixedJar COMMON_JAR_CONFIGURATION
 
 // Documentation
 ////////////////
-
-final DOC_DESCRIPTION_UPDATE = { description += '(Alias for javadoc task)' }
-task doc {
-  ext.docType = 'javaDoc'
-  ext.docDir = javadoc.destinationDir
-  dependsOn = ['javadoc']
-}
-doc DOC_DESCRIPTION_UPDATE << docCodeConfiguration
 
 task monitorClasspath {
   description = 'Enables classpath monitoring.'
@@ -241,48 +204,44 @@ task monitorClasspath {
 task monitorRun {
   description = 'Runs the project with support for monitoring classpath changes and reloading classes.'
   group = GLOBAL$GROUP_RUN
-  dependsOn = ['monitorClasspath', BOOT_RUN_TASK]
+  dependsOn = ['monitorClasspath', 'bootRun']
 }
 
 task run {
   description = bootRun.description
   group = GLOBAL$GROUP_RUN
-  dependsOn = [BOOT_RUN_TASK]
+  dependsOn = ['bootRun']
 }
 
 // Plugin tasks
 ///////////////
 
 checkstyleMain {
-  group = CODE$GROUP_ASSESS
+  group = codeCommonTasks.groupForAssessTasks
 }
 
 checkstyleTest {
-  group = CODE$GROUP_ASSESS
+  group = codeCommonTasks.groupForAssessTasks
 }
 
 pmdMain {
-  group = CODE$GROUP_ASSESS
-  shouldRunAfter CHECKSTYLE_MAIN_TASK
+  group = codeCommonTasks.groupForAssessTasks
+  shouldRunAfter checkstyleMain
 }
 
 pmdTest {
-  group = CODE$GROUP_ASSESS
+  group = codeCommonTasks.groupForAssessTasks
   shouldRunAfter 'checkstyleTest'
 }
 
 test {
+  description = ''
   exclude '**/*'
 }
-test testCodeConfiguration
 
-check checkCodeConfiguration
-
-assemble assembleCodeConfiguration
 assemble {
   shouldRunAfter check
 }
-build buildCodeConfiguration
 
 final JACOCO_EXEC_FILE = files("$buildDir/jacoco/unitTest.exec")
 
@@ -298,7 +257,7 @@ jacocoTestReport {
     xml.enabled true
   }
   // gradle task settings
-  dependsOn unitTest
+  shouldRunAfter = []
   doLast {
     showRatios jacocoTestReport.reports.xml.destination
   }
@@ -306,21 +265,32 @@ jacocoTestReport {
 
 jacocoTestCoverageVerification {
   // jacocoTestCoverageVerification task settings
+  final elementToCheck = 'SOURCEFILE'
+  final valueToCheck = 'COVEREDRATIO'
+  final toExclude = ['**/Main.java']
   executionData = JACOCO_EXEC_FILE
   violationRules {
     rule {
-      element = 'SOURCEFILE'
-      excludes = ['**/Main.java']
+      element = elementToCheck
+      excludes = toExclude
+      limit {
+        counter = 'BRANCH'
+        value = valueToCheck
+        minimum = 0.975
+      }
+    }
+    rule {
+      element = elementToCheck
+      excludes = toExclude
       limit {
         counter = 'INSTRUCTION'
-        value = 'COVEREDRATIO'
-        minimum = 0.95
+        value = valueToCheck
+        minimum = 0.925
       }
     }
   }
   // gradle task settings
-  dependsOn unitTest
-  shouldRunAfter jacocoTestReport
+  shouldRunAfter = [jacocoTestReport]
 }
 
 bootRun {
@@ -330,7 +300,7 @@ bootRun {
   jvmArgs "-Dspring.profiles.active=$runningEnvironment"
   // gradle task settings
   group = GLOBAL$GROUP_RUN
-  dependsOn += [PROJECT_FRONT.assemble, BOOT_RUN_DEPENDENCIES_JAR_TASK]
+  dependsOn += [PROJECT_FRONT.assemble, 'bootRunDependenciesJar']
   shouldRunAfter check
   mustRunAfter monitorClasspath
   doFirst {
@@ -346,7 +316,7 @@ jar {
   // Jar task settings
   version = BACK$VERSION
   // gradle task settings
-  shouldRunAfter assessMain
+  shouldRunAfter codeCommonTasks.assessMainTask
 }
 jar COMMON_JAR_CONFIGURATION
 

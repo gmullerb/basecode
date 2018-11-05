@@ -2,7 +2,7 @@
 
 [![GitHub](https://img.shields.io/github/license/mashape/apistatus.svg)](/LICENSE.txt)
 
-**This project is build with the purpose of given a base code from where you can start to develop with a little of extra work.**
+**This project is build with the purpose of given a base code from where to start developing a Web app with little effort.**
 
 This project is licensed under the terms of the [MIT license](/LICENSE.txt).
 
@@ -167,21 +167,7 @@ task name (..) {
 
 ### Backend and Frontend Common Tasks
 
- [`local_gradle/code.gradle`](local_gradle/code.gradle) contains common gradle tasks definitions between Frontend and Backend in order to allow "same" set of task between both, e.g. `assess` which analyzes and assess code (Main & Test).
-
-```
- code.gradle => CodeTask + CodeConfiguration
-```
-
-* CodeTask : Common Tasks names[1].
-* CodeConfiguration: Common Tasks Configuration.
-
-This way is easily to achieve any task in both projects.
-
-`build.gradle` defines a default task with the purpose of doing all required checks that any developer of the project should run at least to ensure some degree of code wellness on any change before submitting the code: `assessGradle` + `:front:assessLocal` + `check`
-
-> All tasks will generate console information and a report if possible.
-> [1] Some are just alias, since real task name is too long or some plugin creates a task with different name (but same functionality), e.g.: `jacocoTestCoverageVerification`.  
+Both project use [Code's Common Tasks plugin](https://github.com/gmullerb/code-common-tasks) which allows contains common gradle tasks definitions between Frontend and Backend in order to allow "same" set of task between both.
 
 ## Configuration
 
@@ -212,8 +198,6 @@ Project configurations are defined in[2]:
 Properties are defined in gradle.properties files. Properties are defined with prefixes in order to differentiate where is the origin and can be locate "quickly":
 
 * `GLOBAL$property` -> [Main `gradle.properties`](gradle.properties).
-  * Extra case for [`code.gradle`](local_gradle/code.gradle): `CODE$property` located in the [Main `gradle.properties`](gradle.properties).
-  * When changing one of these constant special care have to be taken since it may affect tasks in the back, front and/or e2e project.
 * `BACK$property` -> [Back `gradle.properties`](back/gradle.properties).
 * `FRONT$property` -> [Front `gradle.properties`](front/gradle.properties).
 
@@ -279,7 +263,6 @@ Gradle files (basically Groovy files) are checked with [CodeNarc](http://codenar
 * Report will be in `build/reports/codenarc`.
 * `assessGradle` task is executed by default on the project.
 * Version is defined with `GLOBAL$CODENARC_VERSION` on [`gradle.properties`](gradle.properties)
-
 
 #### Convention over Configuration [1]
 
@@ -349,22 +332,31 @@ For changing configuration go to ['hotrun.gradle'](back/local_gradle/hotrun.grad
 
 > [1] [Keep a Changelog](http://keepachangelog.com)
 
-## Remember
-
-* Start testing early.
-* Code Review Everything => Encourage best practices and Team work.
-
 ## License
 
 [MIT License](/LICENSE.txt)
 
-## Additional words
+## Remember
 
-I hope this will be the start for many amazing web projects.
+* Use code style verification tools => Encourages Best Practices, Efficiency, Readability and Learnability.
+* Start testing early => Encourages Reliability and Maintainability.
+* Code Review everything => Encourages Functional suitability, Performance Efficiency and Teamwork.
+
+## Additional words
 
 Don't forget:
 
 * **Love what you do**.
 * **Learn everyday**.
+* **Learn yourself**.
 * **Share your knowledge**.
 * **Learn from the past, dream on the future, live and enjoy the present to the max!**.
+
+At life:
+
+* Let's act, not complain.
+* Be flexible.
+
+At work:
+
+* Let's give solutions, not questions.

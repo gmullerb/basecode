@@ -13,7 +13,10 @@ ext.showRatios = {
     counter.each {
       final ratio = it.@covered.toDouble() / (it.@missed.toDouble() + it.@covered.toDouble())
       total += ratio
-      logger.quiet "\t* ${it.@type.toString().toLowerCase().capitalize()} = ${numberFormatter.format(ratio)}"
+      final typeTitle = it.@type.toString()
+        .toLowerCase()
+        .capitalize()
+      logger.quiet "\t* $typeTitle = ${numberFormatter.format(ratio)}"
     }
     logger.quiet "\n\tAverage = ${numberFormatter.format(total / counter.size())}\n"
   }

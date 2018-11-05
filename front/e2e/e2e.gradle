@@ -12,7 +12,6 @@ final INCREMENTAL_E2E_INFO = {
   inputs.files fileLister.obtainFullFileTree("$projectDir/src", [includes: [FRONT$CODE_FILES]])
   inputs.files fileLister.obtainFullFileTree("$projectDir/local_js", [includes: [FRONT$CODE_FILES]])
 }
-final MAIN_TASK_DESCRIPTION = 'Run the end to end tests.'
 
 // Plugin settings
 //////////////////
@@ -33,11 +32,11 @@ task assess(type: NpmTask) {
   args = ['eslintE2E']
   // gradle task settings
   description = 'Analyze and assess End to End test code.'
-  group = CODE$GROUP_ASSESS
   inputs.files fileLister.obtainFullFileTree("$projectDir", [includes: [FRONT$ESLINT_CFG_FILE]])
   outputs.upToDateWhen { true }
 }
 assess eslintTaskConfiguration << INCREMENTAL_E2E_INFO
+codeCommonTasks.complementAssessTask(assess)
 
 task test(type: NpmTask) {
   // NpmTask task settings
@@ -48,19 +47,15 @@ task test(type: NpmTask) {
           , "--e2e_jar=${project(':back').fixedJar.archivePath}"
           , "--e2e_report_dir=$buildDir"]
   // gradle task settings
-  description = MAIN_TASK_DESCRIPTION
-  group = CODE$GROUP_TEST
-  dependsOn = [':front:npmInstall', ':back:fixedJar']
-  shouldRunAfter = [assess]
+  description = 'Run the end to end tests.'
+  dependsOn ':front:npmInstall', ':back:fixedJar'
   outputs.dir buildDir
   doLast {
     logger.quiet "See e2e test report at $buildDir"
   }
 }
 test mainNpmTaskConfiguration << INCREMENTAL_E2E_INFO
+codeCommonTasks.complementTestTask(test)
 
 task check
-check checkCodeConfiguration
-check {
-  dependsOn = [assess, test]
-}
+codeCommonTasks.complementCheckTask(check)

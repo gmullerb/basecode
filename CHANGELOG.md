@@ -1,5 +1,18 @@
 # Base code Change Log
 
+## November 2018
+
+* Fourth step to change the License of this project to UNLICENSE: Use [code-common-tasks plugin](https://github.com/gmullerb/code-common-tasks).
+  * Removes `code.gradle`.
+* Adjusts coverage ratios for `jacocoTestCoverageVerification`.
+* Removes some constants in `back.gradle` in order to increase Readability.
+* Upgrades base-style-config to version 1.0.8.
+  * Does some code changes to follow new version.
+* Upgrades Checkstyle to version 8.14.
+* Upgrades PMD to version 6.9.0.
+* Upgrades Spring Boot to version 2.1.0.
+* Updates some README files.
+
 ## October 2018 A
 
 * Third step to change the License of this project to UNLICENSE: Use [project-style-checker plugin](https://github.com/gmullerb/project-style-checker).
@@ -7,7 +20,7 @@
   * Removes `extra.gradle`.
 * Upgrades base-style-config to version 1.0.6.
   * Does some code changes to follow new version.
-* Upgrades Checkstyle to version 8.12.
+* Upgrades Checkstyle to version 8.13.
 * Upgrades PMD to version 6.8.0.
 * Updates some README files.
 

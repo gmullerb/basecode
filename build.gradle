@@ -6,10 +6,16 @@ plugins {
 }
 
 final LOCAL_REPO = hasProperty('localRepo')
-final TARGET_REPOSITORY = { LOCAL_REPO ? mavenLocal() : jcenter() }
+final TARGET_REPOSITORY = {
+  LOCAL_REPO
+  ? mavenLocal()
+  : jcenter()
+}
 logger.info "Gradle Repository: ${LOCAL_REPO ? 'local' : 'remote'} (change it to local with -PlocalRepo)"
 
-ext.runningEnvironment = project.hasProperty('env') ? project.env.toLowerCase() : GLOBAL$DEFAULT_ENVIRONMENT
+ext.runningEnvironment = project.hasProperty('env')
+  ? project.env.toLowerCase()
+  : GLOBAL$DEFAULT_ENVIRONMENT
 logger.quiet "Enviroment: $runningEnvironment (change it with -Penv=TARGET_ENVIRONMENT)"
 
 allprojects {

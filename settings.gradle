@@ -1,3 +1,12 @@
+pluginManagement {
+  repositories {
+      gradlePluginPortal()
+      maven {
+        url 'https://dl.bintray.com/gmullerb/all.shared.gradle'
+      }
+  }
+}
+
 rootProject.name = 'basecode'
 
 include 'back', 'front:e2e'
