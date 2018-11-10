@@ -86,6 +86,7 @@ git clone https://github.com/gmullerb/basecode
   * [`:check`](#Gradle-Tasks-structure).
 
 * `gradlew run`: will run the project.
+  * Go to the web browser look at the url: http://localhost:8080/
 
 * `gradlew tasks --all`: will get all the tasks for the project.
 

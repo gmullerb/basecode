@@ -2,7 +2,7 @@
 //  Licensed under the MIT License (MIT), see LICENSE.txt
 
 plugins {
-  id 'all.shared.gradle.code-common-tasks' version '1.0.0'
+  id 'all.shared.gradle.code-common-tasks' version '1.0.1'
   id 'com.moowork.node' version '1.2.0'
 }
 
@@ -104,12 +104,6 @@ task assessIntegrationTest(type: NpmTask) {
 }
 assessIntegrationTest eslintTaskConfiguration << INCREMENTAL_TEST_LINT_CONFIGURATION << INCREMENTAL_INTEGRATION_TEST_CONFIGURATION
 
-task assessTest(type: NpmTask) {
-  args = ['eslintTest']
-}
-assessTest eslintMainNpmTaskConfiguration << INCREMENTAL_TEST_LINT_CONFIGURATION <<
-  INCREMENTAL_UNIT_TEST_CONFIGURATION << INCREMENTAL_INTEGRATION_TEST_CONFIGURATION << NO_OUTPUTS_CONFIGURATION
-
 task assessCss(type: NpmTask) {
   // NpmTask task settings
   args = ['stylelint', baseStyleConfig.front.stylelintNpmConfigArg]
@@ -133,10 +127,6 @@ task assessLocal(type: NpmTask) {
   inputs.files fileLister.obtainFullFileTree("$projectDir/local_modules", [includes: [FRONT$CODE_FILES, FRONT$ESLINT_CFG_FILE]])
 }
 assessLocal eslintTaskConfiguration << NO_OUTPUTS_CONFIGURATION
-
-task assess {
-  dependsOn assessCss, assessLocal
-}
 
 // Tests
 ////////

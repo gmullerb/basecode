@@ -11,7 +11,6 @@
     "eslintIT": "eslint --config ${npm_config_eslintConfigFile} --color config/test/common-test.cfg.js \"config/test/integration/*.js\" \"src/test/**/*.integration-test.js\"",
     "eslintLocal": "eslint --config ${npm_config_eslintConfigFile} --color \"local_js/**/*.js\" \"local_modules/**/*.js\"",
     "eslintMain": "eslint --config ${npm_config_eslintConfigFile} --color \"src/main/**/*.js\"",
-    "eslintTest": "eslint --config ${npm_config_eslintConfigFile} --color \"config/test/**/*.js\" \"src/test/**/*.js\"",
     "eslintUT": "eslint --config ${npm_config_eslintConfigFile} --color config/test/common-test.cfg.js config/test/unit-test.cfg.js \"src/test/**/*.test.js\"",
     "integrationTest": "karma start config/test/integration/integration-test.cfg.js",
     "jsbuild": "gulp --gulpfile local_js/build.js --cwd ./",

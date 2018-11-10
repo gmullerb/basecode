@@ -1,9 +1,18 @@
 # Base code Change Log
 
+## November 2018 A
+
+* Upgrades code-common-tasks to version 1.0.1.
+  * Does some code changes in frontend's Gradle tasks to follow new version.
+* Updates some backend code based on Spring Boot version 2.1.0.
+* Fixes backend `bootRunDependenciesJar` task for running correctly on Java 11.
+* Updates some README files.
+
 ## November 2018
 
 * Fourth step to change the License of this project to UNLICENSE: Use [code-common-tasks plugin](https://github.com/gmullerb/code-common-tasks).
   * Removes `code.gradle`.
+  * Adds Maven Url https://dl.bintray.com/gmullerb/all.shared.gradle for plugins, due to delays in the approval on [Gradle Plugin Repository](https://plugins.gradle.org/u/gmullerb) (new policies and more delays).
 * Adjusts coverage ratios for `jacocoTestCoverageVerification`.
 * Removes some constants in `back.gradle` in order to increase Readability.
 * Upgrades base-style-config to version 1.0.8.

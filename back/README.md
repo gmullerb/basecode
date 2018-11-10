@@ -44,6 +44,11 @@
 * [`application.yml`](src/main/resources/config/application.yml): Contains information common to any environment (values can be overridden independently by other files).
 * [`application-test.yml`](src/test/resources/config/application-test.yml): Contains information for test environment.
 
+`gradlew run -Dspring.profiles.active=selectedEnvironment`: will run the project in `selectedEnvironment`.
+
+* e.g.: `gradlew run -Dspring.profiles.active=test` will run the project the environment defined in `application.yml` + `application-test.yml`.
+* Go to the web browser look at the url: http://localhost:8080/
+
 ## Code Style
 
 ### Code Style Checking

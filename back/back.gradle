@@ -8,7 +8,7 @@ buildscript {
 }
 
 plugins {
-  id 'all.shared.gradle.code-common-tasks' version '1.0.0'
+  id 'all.shared.gradle.code-common-tasks' version '1.0.1'
   id 'checkstyle'
   id 'java'
   id 'jacoco'
@@ -147,7 +147,7 @@ integrationTest TEST_COMMON_CONFIGURATION
 
 task bootRunDependenciesJar(type: Jar) {
   // Jar task settings
-  final SPRING_BOOT_DEPENDENCIES = configurations.runtime.collect { project.uri(it) }.join(' ')
+  final SPRING_BOOT_DEPENDENCIES = configurations.runtime.join(' ')
   baseName = "$jar.baseName-dependencies"
   version = jar.version
   manifest {
